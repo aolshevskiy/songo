@@ -53,7 +53,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.swt</groupId>
-			<artifactId>swt-${swt.os.name}-${os.arch}</artifactId>
+			<artifactId>swt-${songo.os.name}-${songo.os.arch}</artifactId>
 			<version>4.2.1</version>
 		</dependency>
 		<dependency>
@@ -62,24 +62,81 @@
 			<version>3.5.1</version>
 		</dependency>
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-simple</artifactId>
-			<version>1.7.1</version>
+			<groupId>com.google.code.findbugs</groupId>
+			<artifactId>jsr305</artifactId>
+			<version>2.0.1</version>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.0.7</version>
 			<scope>runtime</scope>
 		</dependency>
 	</dependencies>
 
+	<build>
+	<plugins>
+		<plugin>
+			<artifactId>maven-compiler-plugin</artifactId>
+			<configuration>
+				<source>1.6</source>
+				<target>1.6</target>
+			</configuration>
+		</plugin>
+		<plugin>
+			<artifactId>maven-jar-plugin</artifactId>
+			<configuration>
+				<archive>
+					<manifest>
+						<mainClass>songo.MainModule</mainClass>
+						<addClasspath>true</addClasspath>
+					</manifest>
+				</archive>
+			</configuration>
+		</plugin>
+		<plugin>
+			<artifactId>maven-assembly-plugin</artifactId>
+			<version>2.3</version>
+			<configuration>
+				<descriptors>
+					<descriptor>src/main/assembly/assembly.xml</descriptor>
+				</descriptors>
+			</configuration>
+			<executions>
+				<execution>
+					<id>assembly</id>
+					<phase>package</phase>
+					<goals>
+						<goal>single</goal>
+					</goals>
+				</execution>
+			</executions>
+		</plugin>
+	</plugins>
+	</build>
 	<profiles>
 		<profile>
 			<id>linux</id>
-			<activation>
-				<property>
-					<name>os.name</name>
-					<value>Linux</value>
-				</property>
-			</activation>
 			<properties>
-				<swt.os.name>linux</swt.os.name>
+				<songo.os.name>linux</songo.os.name>
+			</properties>
+		</profile>
+		<profile>
+			<id>win</id>
+			<properties>
+				<songo.os.name>win</songo.os.name>
+			</properties>
+		</profile>
+		<profile>
+			<id>amd64</id>
+			<properties>
+				<songo.os.arch>amd64</songo.os.arch>
+			</properties>
+		</profile>
+		<profile>
+			<id>x86</id>
+			<properties>
+				<songo.os.arch>x86</songo.os.arch>
 			</properties>
 		</profile>
 	</profiles>

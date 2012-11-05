@@ -3,9 +3,12 @@ package songo.model;
 import com.google.common.base.Throwables;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
+import org.slf4j.Logger;
+import songo.logging.InjectLogger;
 import songo.model.streams.RemoteStream;
 import songo.model.streams.Stream;
 import songo.mpg123.Mpg123;
+import songo.mpg123.Mpg123Exception;
 import songo.vk.Audio;
 
 import javax.sound.sampled.AudioSystem;
@@ -13,6 +16,7 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 
 class Decoder implements Runnable {
 	private final int duration;
@@ -26,6 +30,7 @@ class Decoder implements Runnable {
 	private byte[] buffer = new byte[1024];
 	private byte[] outbuffer = new byte[8192];
 	private SourceDataLine line;
+	@InjectLogger Logger logger;
 
 	@Inject
 	Decoder(Audio track, Stream stream, Mpg123 mpg, EventBus bus) {
@@ -50,52 +55,76 @@ class Decoder implements Runnable {
 	}
 
 	void open() {
-		mpg.openFeed();
+		try {
+			mpg.openFeed();
+		} catch (Mpg123Exception e) {
+			throw Throwables.propagate(e);
+		}
 		executor.submit(this);
 	}
 
 	void close() {
 		executor.shutdownNow();
-		mpg.close();
-		stream.closeIfCompleted();
+		if(line != null) {
+			line.stop();
+			line.close();
+		}
+		try {
+			mpg.close();
+		} catch (Mpg123Exception e) {
+			//ignore mpg handle closed exception here
+		}
 		if (stream instanceof RemoteStream)
 			((RemoteStream) stream).setDownloadProgressListener(null);
+		stream.closeIfCompleted();
 	}
 
 	@Override
 	public void run() {
-		if (paused)
-			return;
-		int read = stream.read(buffer);
-		if (read == -1 && stream.getLimit() != stream.getLength()) {
-			stream.seek(stream.getPosition());
-			return;
+		try {
+			if (paused)
+				return;
+			int read = stream.read(buffer);
+			if (read == -1 && stream.getLimit() != stream.getLength()) {
+				stream.seek(stream.getPosition());
+				return;
+			}
+			int outsize = outbuffer.length;
+			if (line == null)
+				outsize = 0;
+			int decoded = mpg.decode(buffer, read == -1 ? 0 : read, outbuffer, outsize);
+			if (read == -1 && decoded == 0) {
+				bus.post(new Player.DonePlaying());
+				return;
+			}
+			if (line == null && mpg.getLastError() == Mpg123.NEW_FORMAT)
+				initLine();
+			if (line != null)
+				line.write(outbuffer, 0, decoded);
+			postEvents();
+			try {
+				executor.execute(this);
+			} catch(RejectedExecutionException e) {
+				//ignore rejected execution exception
+			}
+		} catch (Exception e) {
+			logger.error("Exception occured in decoder main loop", e);
 		}
-		int outsize = outbuffer.length;
-		if (line == null)
-			outsize = 0;
-		int decoded = mpg.decode(buffer, read == -1 ? 0 : read, outbuffer, outsize);
-		if (read == -1 && decoded == 0) {
-			bus.post(new Player.DonePlaying());
-			return;
-		}
-		if (line == null && mpg.getLastError() == Mpg123.NEW_FORMAT)
-			initLine();
-		if (line != null)
-			line.write(outbuffer, 0, decoded);
-		postEvents();
-		executor.submit(this);
 	}
 
 	private void postEvents() {
-		if (!sizeSet && stream.getLength() != -1) {
-			sizeSet = true;
-			mpg.setFileSize((int) stream.getLength());
-		}
-		int newPosition = (int) ((float) duration * mpg.getSamplePosition() / mpg.getLength());
-		if (newPosition != position) {
-			position = newPosition;
-			bus.post(new Player.UpdatePosition(position));
+		try {
+			if (!sizeSet && stream.getLength() != -1) {
+				sizeSet = true;
+				mpg.setFileSize((int) stream.getLength());
+			}
+			int newPosition = (int) ((float) duration * mpg.getSamplePosition() / mpg.getLength());
+			if (newPosition != position) {
+				position = newPosition;
+				bus.post(new Player.UpdatePosition(position));
+			}
+		} catch (Exception e) {
+			throw Throwables.propagate(e);
 		}
 	}
 
@@ -103,7 +132,7 @@ class Decoder implements Runnable {
 		try {
 			line = AudioSystem.getSourceDataLine(mpg.getFormat());
 			line.open();
-		} catch (LineUnavailableException e) {
+		} catch (Exception e) {
 			throw Throwables.propagate(e);
 		}
 		line.start();
@@ -123,7 +152,7 @@ class Decoder implements Runnable {
 	}
 
 	void seek(float position) {
-		executor.submit(new Seek(position));
+		executor.execute(new Seek(position));
 	}
 
 	private class Seek implements Runnable {
@@ -135,8 +164,13 @@ class Decoder implements Runnable {
 
 		@Override
 		public void run() {
-			int sampleOffset = (int) (mpg.getLength() * position);
-			stream.seek(mpg.seek(sampleOffset));
+			try {
+				line.flush();
+				int sampleOffset = (int) (mpg.getLength() * position);
+				stream.seek(mpg.seek(sampleOffset));
+			} catch(Exception e) {
+				logger.error("Exception occured while seeking", e);
+			}
 		}
 	}
 
@@ -146,6 +180,6 @@ class Decoder implements Runnable {
 
 	void unpause() {
 		paused = false;
-		executor.submit(this);
+		executor.execute(this);
 	}
 }

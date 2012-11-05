@@ -18,7 +18,25 @@ public class Playlist {
 		return tracks;
 	}
 
+	public void setTracks(List<Audio> tracks) {
+		Audio track = getCurrentTrack();
+		this.tracks = tracks;
+		if(track != null) {
+			int i = 0;
+			for(Audio t: tracks) {
+				if(t == track) {
+					currentTrackIndex = i;
+					break;
+				}
+				i++;
+			}
+		}
+		bus.post(new Changed());
+	}
+
 	public Audio getCurrentTrack() {
+		if(currentTrackIndex == -1)
+			return null;
 		return tracks.get(currentTrackIndex);
 	}
 

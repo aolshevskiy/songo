@@ -4,6 +4,9 @@ import com.google.common.base.Throwables;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.ning.http.client.*;
+import org.slf4j.Logger;
+import songo.annotation.BackgroundExecutor;
+import songo.logging.InjectLogger;
 import songo.vk.Audio;
 
 import java.io.File;
@@ -12,6 +15,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class RemoteStream implements Stream {
@@ -28,9 +32,10 @@ public class RemoteStream implements Stream {
 	private volatile long expectedSeekPosition = -1;
 	private volatile Runnable listener;
 	private volatile Runnable progressListener;
+	@InjectLogger Logger logger;
 
 	@Inject
-	RemoteStream(AsyncHttpClient client, StreamUtil util, LocalStreamFactory factory, StreamManager manager, @Assisted Audio track) {
+	RemoteStream(AsyncHttpClient client, StreamUtil util, LocalStreamFactory factory, StreamManager manager, @BackgroundExecutor ExecutorService executor, @Assisted Audio track) {
 		this.client = client;
 		this.factory = factory;
 		this.manager = manager;
@@ -42,12 +47,13 @@ public class RemoteStream implements Stream {
 			throw Throwables.propagate(e);
 		}
 		channel = file.getChannel();
-		Executors.newSingleThreadExecutor().submit(new Runnable() {
+		executor.execute(new Runnable() {
 			@Override
 			public void run() {
 				open();
 			}
 		});
+		manager.add(this);
 	}
 
 	public File getTrackFile() {
@@ -108,7 +114,6 @@ public class RemoteStream implements Stream {
 		} catch (IOException e) {
 			throw Throwables.propagate(e);
 		}
-		manager.add(this);
 	}
 
 	@Override
@@ -127,6 +132,11 @@ public class RemoteStream implements Stream {
 			throw Throwables.propagate(e);
 		}
 		manager.remove(this);
+	}
+
+	void closeAndDelete() {
+		closeThis();
+		trackFile.delete();
 	}
 
 	@Override
@@ -154,8 +164,8 @@ public class RemoteStream implements Stream {
 	private class HttpHandler implements AsyncHandler<Object> {
 		@Override
 		public void onThrowable(Throwable t) {
-			closeThis();
-			trackFile.delete();
+			logger.error("Throwable in http handler", t);
+			closeAndDelete();
 		}
 
 		@Override

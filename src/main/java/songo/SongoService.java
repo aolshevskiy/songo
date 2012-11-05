@@ -5,8 +5,10 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.ning.http.client.AsyncHttpClient;
+import org.eclipse.swt.SWTException;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import songo.annotation.BackgroundExecutor;
 import songo.annotation.SessionScope;
 import songo.controller.AuthController;
 import songo.controller.Controller;
@@ -15,6 +17,8 @@ import songo.model.Configuration;
 import songo.model.Player;
 import songo.model.streams.StreamManager;
 import songo.mpg123.Mpg123Native;
+
+import java.util.concurrent.ExecutorService;
 
 @Singleton
 public class SongoService extends AbstractExecutionThreadService {
@@ -26,6 +30,7 @@ public class SongoService extends AbstractExecutionThreadService {
 	private final Provider<AuthController> authController;
 	private final Provider<MainController> mainController;
 	private final StreamManager streamManager;
+	private final ExecutorService backgroundExecutor;
 	private Display display;
 	private Provider<? extends Controller> controller;
 	private Shell shell;
@@ -37,7 +42,7 @@ public class SongoService extends AbstractExecutionThreadService {
 	@Inject
 	SongoService(AsyncHttpClient asyncHttpClient, Mpg123Native mpg123Native, Player player,
 	             @SessionScope SimpleScope scope, Configuration conf, Provider<AuthController> authController,
-	             Provider<MainController> mainController, StreamManager streamManager) {
+	             Provider<MainController> mainController, StreamManager streamManager, @BackgroundExecutor ExecutorService backgroundExecutor) {
 		this.asyncHttpClient = asyncHttpClient;
 		this.mpg123Native = mpg123Native;
 		this.player = player;
@@ -46,6 +51,7 @@ public class SongoService extends AbstractExecutionThreadService {
 		this.authController = authController;
 		this.mainController = mainController;
 		this.streamManager = streamManager;
+		this.backgroundExecutor = backgroundExecutor;
 	}
 
 	@Override
@@ -80,6 +86,7 @@ public class SongoService extends AbstractExecutionThreadService {
 
 	@Override
 	protected void shutDown() throws Exception {
+		backgroundExecutor.shutdownNow();
 		player.stop();
 		asyncHttpClient.close();
 		mpg123Native.mpg123_exit();

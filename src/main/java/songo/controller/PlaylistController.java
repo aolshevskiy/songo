@@ -1,5 +1,6 @@
 package songo.controller;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -8,6 +9,11 @@ import songo.model.Player;
 import songo.model.Playlist;
 import songo.view.PlayerControl;
 import songo.view.PlaylistView;
+import songo.vk.Audio;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class PlaylistController {
 	private final PlaylistView view;
@@ -83,5 +89,28 @@ public class PlaylistController {
 			return;
 		playlist.setCurrentTrackIndex(view.getSelectedIndices()[0]);
 		player.play();
+	}
+
+	@Subscribe
+	public void insertBefore(PlaylistView.InsertBefore e) {
+		List<Audio> view = new ArrayList<Audio>();
+		view.addAll(playlist.getTracks());
+		Audio target = view.get(e.target);
+		List<Integer> sourceIds = new ArrayList<Integer>();
+		for(int i: e.source)
+			sourceIds.add(i);
+		Collections.reverse(sourceIds);
+		List<Audio> source = new ArrayList<Audio>();
+		for(int i: sourceIds)
+			source.add(view.remove(i));
+		Collections.reverse(source);
+		int i = 0;
+		for(Audio track: view) {
+			if(track == target)
+				break;
+			i++;
+		}
+		view.addAll(i, source);
+		playlist.setTracks(ImmutableList.copyOf(view));
 	}
 }

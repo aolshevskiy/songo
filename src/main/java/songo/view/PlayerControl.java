@@ -17,7 +17,6 @@ import songo.model.Playlist;
 
 @SessionScoped
 public class PlayerControl extends Composite {
-	private final Playlist playlist;
 	private final EventBus bus;
 	private final ProgressBar progress;
 	private Label progressText;
@@ -31,9 +30,8 @@ public class PlayerControl extends Composite {
 	private Image pauseIcon;
 
 	@Inject
-	public PlayerControl(MainView mainView, Playlist playlist, EventBus bus, ResourceUtil resourceUtil) {
+	public PlayerControl(MainView mainView, EventBus bus, ResourceUtil resourceUtil) {
 		super(mainView.getShell(), SWT.NONE);
-		this.playlist = playlist;
 		this.bus = bus;
 		moveAbove(mainView.getShell().getChildren()[0]);
 		setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
@@ -44,6 +42,9 @@ public class PlayerControl extends Composite {
 		thisLayout.verticalSpacing = 0;
 		setLayout(thisLayout);
 		ToolBar toolbar = new ToolBar(this, SWT.FLAT);
+		GridData toolbarData = new GridData(SWT.CENTER, SWT.FILL, false, true);
+		toolbarData.verticalSpan = 2;
+		toolbar.setLayoutData(toolbarData);
 		prevButton = new ToolItem(toolbar, SWT.FLAT);
 		prevButton.setImage(new Image(getDisplay(), resourceUtil.iconStream("prev")));
 		playButton = new ToolItem(toolbar, SWT.FLAT);
@@ -66,9 +67,7 @@ public class PlayerControl extends Composite {
 			}
 		});
 		Label placeholder = new Label(this, SWT.NONE);
-		GridData placeholderData = new GridData(SWT.CENTER, SWT.CENTER, false, false);
-		placeholderData.horizontalSpan = 2;
-		placeholder.setLayoutData(placeholderData);
+		placeholder.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
 		downloadProgress = new ProgressBar(this, SWT.NONE);
 		GridData downloadData = new GridData(SWT.FILL, SWT.CENTER, false, false);
 		downloadData.heightHint = 10;

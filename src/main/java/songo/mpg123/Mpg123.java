@@ -12,6 +12,7 @@ public class Mpg123 {
 	private final Pointer handle;
 	private boolean sizeSet;
 	private int lastError = 0;
+	private boolean closed;
 
 	public int getLastError() {
 		return lastError;
@@ -30,27 +31,45 @@ public class Mpg123 {
 		MPG123_ENC_FLOAT_32 = 0x200, MPG123_ENC_FLOAT_64 = 0x400,
 		SEEK_SET = 0, SEEK_CUR = 0, SEEK_END = 0;
 
+	private void checkStatus() throws Mpg123Exception {
+		if(closed)
+			throw new Mpg123Exception("Handle closed");
+	}
+
 	@Inject
-	Mpg123(Mpg123Native nat) {
+	Mpg123(Mpg123Native nat) throws Mpg123Exception {
 		this.nat = nat;
-		handle = nat.mpg123_new(null, null);
+		synchronized (this) {
+			checkStatus();
+			handle = nat.mpg123_new(null, null);
+		}
 	}
 
-	public void openFeed() {
-		nat.mpg123_open_feed(handle);
+	public void openFeed() throws Mpg123Exception {
+		synchronized (this) {
+			checkStatus();
+			nat.mpg123_open_feed(handle);
+		}
 	}
 
-	public int decode(byte[] in, int insize, byte[] out, int outsize) {
+	public int decode(byte[] in, int insize, byte[] out, int outsize) throws Mpg123Exception {
 		IntByReference result = new IntByReference();
-		int retval = nat.mpg123_decode(handle, in, insize, out, outsize, result);
+		int retval;
+		synchronized (this) {
+			checkStatus();
+			retval = nat.mpg123_decode(handle, in, insize, out, outsize, result);
+		}
 		lastError = retval;
 		return result.getValue();
 	}
 
-	public AudioFormat getFormat() {
+	public AudioFormat getFormat() throws Mpg123Exception {
 		IntByReference rate = new IntByReference(),
 			channels = new IntByReference(), encRef = new IntByReference();
-		nat.mpg123_getformat(handle, rate, channels, encRef);
+		synchronized (this) {
+			checkStatus();
+			nat.mpg123_getformat(handle, rate, channels, encRef);
+		}
 		int enc = encRef.getValue();
 		int sampleSizeInBits = -1;
 		if ((enc & MPG123_ENC_8) != 0)
@@ -67,33 +86,44 @@ public class Mpg123 {
 		return new AudioFormat(rate.getValue(), sampleSizeInBits, channels.getValue(), signed, ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN);
 	}
 
-	public void close() {
+	public synchronized void close() throws Mpg123Exception {
+		checkStatus();
+		closed = true;
 		nat.mpg123_close(handle);
 		nat.mpg123_delete(handle);
 	}
 
-	public void setFileSize(int size) {
+	public void setFileSize(int size) throws Mpg123Exception {
 		if (!sizeSet) {
 			sizeSet = true;
-			nat.mpg123_set_filesize(handle, size);
+			synchronized (this) {
+				checkStatus();
+				nat.mpg123_set_filesize(handle, size);
+			}
 		}
 	}
 
-	public int getLength() {
+	public synchronized int getLength() throws Mpg123Exception {
+		checkStatus();
 		return nat.mpg123_length(handle);
 	}
 
-	public int getSamplePosition() {
+	public synchronized int getSamplePosition() throws Mpg123Exception {
+		checkStatus();
 		return nat.mpg123_tell(handle);
 	}
 
-	public int seek(int sampleOffset) {
+	public int seek(int sampleOffset) throws Mpg123Exception {
 		IntByReference result = new IntByReference();
-		nat.mpg123_feedseek(handle, sampleOffset, SEEK_SET, result);
+		synchronized (this) {
+			checkStatus();
+			nat.mpg123_feedseek(handle, sampleOffset, SEEK_SET, result);
+		}
 		return result.getValue();
 	}
 
-	public int streamOffset() {
+	public synchronized int streamOffset() throws Mpg123Exception {
+		checkStatus();
 		return nat.mpg123_tell_stream(handle);
 	}
 }

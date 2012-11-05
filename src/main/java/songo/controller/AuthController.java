@@ -56,8 +56,7 @@ public class AuthController implements Controller {
 			}
 		});
 		dialog.addLocationListener(new LocationAdapter() {
-			@Override
-			public void changing(LocationEvent event) {
+			private void listen(LocationEvent event) {
 				if (event.location.startsWith(PROFILE_PREFIX) || event.location.startsWith(ERROR_PREFIX)) {
 					event.doit = false;
 					auth();
@@ -66,6 +65,16 @@ public class AuthController implements Controller {
 					event.doit = false;
 					acquireToken(event.location);
 				}
+			}
+
+			@Override
+			public void changing(LocationEvent event) {
+				listen(event);
+			}
+
+			@Override
+			public void changed(LocationEvent event) {
+				listen(event);
 			}
 		});
 	}

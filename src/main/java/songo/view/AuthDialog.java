@@ -13,6 +13,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 import songo.SWTUtil;
+import songo.annotation.BrowserStyle;
 import songo.model.Configuration;
 
 @SessionScoped
@@ -38,7 +39,7 @@ public class AuthDialog implements View {
 	}
 
 	@Inject
-	AuthDialog(Shell shell, SWTUtil util, final Configuration conf) {
+	AuthDialog(Shell shell, SWTUtil util, @BrowserStyle Integer browserStyle) {
 		this.shell = shell;
 		util.exitOnClose(shell);
 		shell.setText("Songo - VKontakte Authorization");
@@ -51,7 +52,7 @@ public class AuthDialog implements View {
 		authLabel.setLayoutData(horizontalFill());
 		authLabel.setText("VKontakte authorization is absolutely required");
 		final ProgressBar progressBar = new ProgressBar(topPanel, SWT.NONE);
-		browser = new Browser(shell, SWT.WEBKIT);
+		browser = new Browser(shell, browserStyle);
 		browser.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		browser.addProgressListener(new ProgressAdapter() {
 			@Override

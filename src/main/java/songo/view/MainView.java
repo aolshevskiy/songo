@@ -36,7 +36,7 @@ public class MainView implements View {
 		playlistTab.setText("Playlist");
 		searchTab = new TabItem(tabs, SWT.NONE);
 		searchTab.setText("Search");
-		tabs.setSelection(1);
+		//tabs.setSelection(1);
 	}
 
 	@Override

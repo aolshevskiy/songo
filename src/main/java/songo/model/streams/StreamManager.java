@@ -12,11 +12,13 @@ public class StreamManager {
 	private ConcurrentMap<Audio, RemoteStream> streams = new ConcurrentHashMap<Audio, RemoteStream>();
 
 	void add(RemoteStream stream) {
-		streams.put(stream.getTrack(), stream);
+		RemoteStream prev = streams.putIfAbsent(stream.getTrack(), stream);
+		assert prev == null;
 	}
 
 	void remove(RemoteStream stream) {
-		streams.remove(stream.getTrack(), stream);
+		boolean result = streams.remove(stream.getTrack(), stream);
+		assert result;
 	}
 
 	RemoteStream get(Audio track) {
@@ -27,9 +29,7 @@ public class StreamManager {
 	}
 
 	public void close() {
-		for (Map.Entry<Audio, RemoteStream> e : streams.entrySet()) {
-			e.getValue().close();
-			e.getValue().getTrackFile().delete();
-		}
+		for (Map.Entry<Audio, RemoteStream> e : streams.entrySet())
+			e.getValue().closeAndDelete();
 	}
 }
