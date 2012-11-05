@@ -19,10 +19,14 @@ public class StreamUtil {
 		return input.replace("\"", "");
 	}
 
+	private static String escapeForNonWindows(String input) {
+		return input.replace("/", "");
+	}
+
 	private String fixFilename(String input) {
 		if(runningWindows)
 			return escapeForWindows(input);
-		return input;
+		return escapeForNonWindows(input);
 	}
 
 	public File getTrackFile(Audio track) {

@@ -55,11 +55,6 @@ public class LocalStream implements Stream {
 	}
 
 	@Override
-	public void open() {
-
-	}
-
-	@Override
 	public void close() {
 		try {
 			file.close();

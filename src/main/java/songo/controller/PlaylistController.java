@@ -33,6 +33,12 @@ public class PlaylistController {
 				play();
 			}
 		});
+		view.addDelListener(new Runnable() {
+			@Override
+			public void run() {
+				delete();
+			}
+		});
 		playerControl.addPrevListener(new Runnable() {
 			@Override
 			public void run() {
@@ -54,6 +60,11 @@ public class PlaylistController {
 	}
 
 	@Subscribe
+	public void playlistCurrentTrackChanged(Playlist.CurrentTrackChanged e) {
+		view.updateCurrentTrack();
+	}
+
+	@Subscribe
 	public void seek(PlayerControl.Seek e) {
 		player.seek(e.position);
 	}
@@ -72,16 +83,22 @@ public class PlaylistController {
 		int prev = playlist.getCurrentTrackIndex() - 1;
 		if (prev < 0)
 			prev = playlist.getTracks().size() - 1;
-		playlist.setCurrentTrackIndex(prev);
-		player.play();
+		prevNextUpdateState(prev);
 	}
 
 	public void next() {
 		int next = playlist.getCurrentTrackIndex() + 1;
 		if (next == playlist.getTracks().size())
 			next = 0;
-		playlist.setCurrentTrackIndex(next);
-		player.play();
+		prevNextUpdateState(next);
+	}
+
+	private void prevNextUpdateState(int trackIndex) {
+		playlist.setCurrentTrackIndex(trackIndex);
+		if(player.getState() == Player.State.PLAYING)
+			player.play();
+		else if(player.getState() == Player.State.PAUSED)
+			player.stop();
 	}
 
 	public void play() {
@@ -112,5 +129,9 @@ public class PlaylistController {
 		}
 		view.addAll(i, source);
 		playlist.setTracks(ImmutableList.copyOf(view));
+	}
+
+	private void delete() {
+		playlist.remove(view.getSelectedIndices());
 	}
 }

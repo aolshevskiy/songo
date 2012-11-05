@@ -6,6 +6,7 @@ import com.google.inject.Inject;
 import com.google.inject.servlet.SessionScoped;
 import songo.vk.Audio;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @SessionScoped
@@ -21,17 +22,20 @@ public class Playlist {
 	public void setTracks(List<Audio> tracks) {
 		Audio track = getCurrentTrack();
 		this.tracks = tracks;
-		if(track != null) {
-			int i = 0;
-			for(Audio t: tracks) {
-				if(t == track) {
-					currentTrackIndex = i;
-					break;
-				}
-				i++;
+		fixCurrentTrack(track);
+		changed();
+	}
+
+	private void fixCurrentTrack(Audio track) {
+		currentTrackIndex = -1;
+		int i = 0;
+		for(Audio t: tracks) {
+			if(t == track) {
+				currentTrackIndex = i;
+				return;
 			}
+			i++;
 		}
-		bus.post(new Changed());
 	}
 
 	public Audio getCurrentTrack() {
@@ -46,7 +50,7 @@ public class Playlist {
 
 	public void setCurrentTrackIndex(int currentTrackIndex) {
 		this.currentTrackIndex = currentTrackIndex;
-		bus.post(new Changed());
+		currentTrackChanged();
 	}
 
 	@Inject
@@ -56,9 +60,39 @@ public class Playlist {
 
 	public void add(List<Audio> newTracks) {
 		tracks = new ImmutableList.Builder<Audio>().addAll(tracks).addAll(newTracks).build();
+		changed();
+	}
+
+	public void replace(List<Audio> selectedTracks) {
+		tracks = selectedTracks;
+		currentTrackIndex = -1;
+		changed();
+	}
+
+	public void remove(int[] indices) {
+		Audio current = getCurrentTrack();
+		ArrayList<Audio> view = new ArrayList<Audio>();
+		view.addAll(tracks);
+		for(int i = indices.length - 1; i >= 0; i--)
+			view.remove(indices[i]);
+		tracks = ImmutableList.copyOf(view);
+		fixCurrentTrack(current);
+		changed();
+	}
+
+	private void changed() {
 		bus.post(new Changed());
 	}
 
+	private void currentTrackChanged() {
+		bus.post(new CurrentTrackChanged());
+	}
+
 	public static class Changed {
+		private Changed(){}
+	}
+
+	public static class CurrentTrackChanged {
+		private CurrentTrackChanged(){}
 	}
 }

@@ -1,6 +1,7 @@
 package songo.model.streams;
 
 import com.google.common.base.Throwables;
+import com.google.common.util.concurrent.RateLimiter;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.ning.http.client.*;
@@ -17,17 +18,19 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class RemoteStream implements Stream {
 	private final AsyncHttpClient client;
 	private final LocalStreamFactory factory;
 	private final StreamManager manager;
+	private final RateLimiter rateLimiter;
 	private final Audio track;
 	private final File trackFile;
 	private final RandomAccessFile file;
 	private final FileChannel channel;
 	private volatile long limit;
-	private long length = -1;
+	private volatile long length = -1;
 	private LocalStream delegate;
 	private volatile long expectedSeekPosition = -1;
 	private volatile Runnable listener;
@@ -35,10 +38,11 @@ public class RemoteStream implements Stream {
 	@InjectLogger Logger logger;
 
 	@Inject
-	RemoteStream(AsyncHttpClient client, StreamUtil util, LocalStreamFactory factory, StreamManager manager, @BackgroundExecutor ExecutorService executor, @Assisted Audio track) {
+	RemoteStream(final AsyncHttpClient client, StreamUtil util, LocalStreamFactory factory, StreamManager manager, @BackgroundExecutor ExecutorService executor, RateLimiter rateLimiter, @Assisted final Audio track) {
 		this.client = client;
 		this.factory = factory;
 		this.manager = manager;
+		this.rateLimiter = rateLimiter;
 		this.track = track;
 		trackFile = util.getTrackFile(track);
 		try {
@@ -50,7 +54,11 @@ public class RemoteStream implements Stream {
 		executor.execute(new Runnable() {
 			@Override
 			public void run() {
-				open();
+				try {
+					client.prepareGet(track.url).execute(new HttpHandler());
+				} catch (IOException e) {
+					logger.error("Connection failed", e);
+				}
 			}
 		});
 		manager.add(this);
@@ -105,15 +113,6 @@ public class RemoteStream implements Stream {
 
 	public void setDownloadProgressListener(Runnable progressListener) {
 		this.progressListener = progressListener;
-	}
-
-	@Override
-	public void open() {
-		try {
-			client.prepareGet(track.url).execute(new HttpHandler());
-		} catch (IOException e) {
-			throw Throwables.propagate(e);
-		}
 	}
 
 	@Override
@@ -172,6 +171,7 @@ public class RemoteStream implements Stream {
 		public STATE onBodyPartReceived(final HttpResponseBodyPart bodyPart) throws Exception {
 			ByteBuffer buffer = bodyPart.getBodyByteBuffer();
 			int bufferLength = buffer.limit() - buffer.position();
+			rateLimiter.acquire(bufferLength);
 			while (buffer.limit() != buffer.position())
 				channel.write(buffer, limit);
 			limit += bufferLength;
@@ -195,9 +195,7 @@ public class RemoteStream implements Stream {
 		@Override
 		public STATE onHeadersReceived(HttpResponseHeaders headers) throws Exception {
 			long l = Long.valueOf(headers.getHeaders().get("Content-Length").get(0));
-			synchronized (this) {
-				length = l;
-			}
+			length = l;
 			return STATE.CONTINUE;
 		}
 

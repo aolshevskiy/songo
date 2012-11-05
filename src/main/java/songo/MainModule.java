@@ -1,11 +1,16 @@
 package songo;
 
 import com.google.common.eventbus.EventBus;
+import com.google.common.util.concurrent.RateLimiter;
 import com.google.inject.*;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.matcher.Matchers;
 import com.google.inject.servlet.SessionScoped;
 import com.ning.http.client.AsyncHttpClient;
+import com.ning.http.client.AsyncHttpClientConfig;
+import com.ning.http.client.AsyncHttpProviderConfig;
+import com.ning.http.client.providers.netty.NettyAsyncHttpProvider;
+import com.ning.http.client.providers.netty.NettyAsyncHttpProviderConfig;
 import com.sun.jna.Native;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
@@ -47,7 +52,6 @@ public class MainModule extends AbstractModule {
 		bind(String.class).annotatedWith(VkAppId.class).toInstance("3192319");
 		bind(String.class).annotatedWith(VkRegisterUrl.class).toInstance("http://vk.com/join");
 		bind(Integer.class).annotatedWith(BrowserStyle.class).toInstance(getNativeBrowserStyle());
-		bind(AsyncHttpClient.class).in(Singleton.class);
 		bind(Stream.class).toProvider(StreamProvider.class);
 		install(
 			new FactoryModuleBuilder()
@@ -113,6 +117,19 @@ public class MainModule extends AbstractModule {
 	@Singleton @BackgroundExecutor
 	ExecutorService provideBackgroundExecutor() {
 		return Executors.newSingleThreadExecutor();
+	}
+
+	@Provides @Singleton
+	AsyncHttpClient provideAsyncHttpClient() {
+		AsyncHttpClientConfig config = new AsyncHttpClientConfig.Builder()
+			.setRequestTimeoutInMs(300000)
+			.build();
+		return new AsyncHttpClient(config);
+	}
+
+	@Provides @Singleton
+	RateLimiter provideRateLimiter() {
+		return RateLimiter.create(200000);
 	}
 
 	public static void main(Stage stage) {

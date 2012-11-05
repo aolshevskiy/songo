@@ -17,9 +17,11 @@ import songo.vk.Audio;
 import java.util.List;
 
 public class SearchView extends Composite {
-	private Text searchField;
-	private Table table;
+	private final Text searchField;
+	private final Table table;
 	private List<Audio> results = ImmutableList.of();
+	private final MenuItem add;
+	private final MenuItem replace;
 
 	@Inject
 	SearchView(@SearchTab final TabItem searchTab) {
@@ -44,6 +46,12 @@ public class SearchView extends Composite {
 			column.setText(name);
 			column.pack();
 		}
+		Menu menu = new Menu(table);
+		add = new MenuItem(menu, SWT.NONE);
+		add.setText("Add");
+		replace = new MenuItem(menu, SWT.NONE);
+		replace.setText("Replace");
+		table.setMenu(menu);
 	}
 
 	public void addSearchListener(final Runnable listener) {
@@ -85,6 +93,21 @@ public class SearchView extends Composite {
 			@Override
 			public void mouseDoubleClick(MouseEvent e) {
 				listener.run();
+			}
+		});
+		add.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				listener.run();
+			}
+		});
+	}
+
+	public void addReplaceListener(final Runnable listner) {
+		replace.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				listner.run();
 			}
 		});
 	}

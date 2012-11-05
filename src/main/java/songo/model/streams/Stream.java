@@ -9,8 +9,6 @@ public interface Stream {
 
 	void setDoneSeekingListener(Runnable listener);
 
-	void open();
-
 	void close();
 
 	void closeIfCompleted();

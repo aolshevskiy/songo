@@ -6,8 +6,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.FillLayout;
@@ -21,9 +20,11 @@ import java.util.Arrays;
 import java.util.List;
 
 public class PlaylistView extends Composite {
-	private Table table;
+	private final Table table;
 	private final Playlist playlist;
 	private final Font boldFont;
+	private final MenuItem delete;
+	private final Font normalFont;
 
 	@Inject
 	PlaylistView(@PlaylistTab TabItem playlistTab, Playlist playlist, final EventBus bus) {
@@ -40,9 +41,10 @@ public class PlaylistView extends Composite {
 			column.pack();
 		}
 		FontData[] data = table.getFont().getFontData();
+		normalFont = new Font(getDisplay(), data);
 		for (FontData d : data)
 			d.setStyle(SWT.BOLD);
-		boldFont = new Font(this.getDisplay(), data);
+		boldFont = new Font(getDisplay(), data);
 		DragSource dragSource = new DragSource(table, DND.DROP_MOVE);
 		dragSource.setTransfer(new Transfer[]{TextTransfer.getInstance()});
 		dragSource.addDragListener(new DragSourceAdapter() {
@@ -56,8 +58,8 @@ public class PlaylistView extends Composite {
 		dropTarget.addDropListener(new DropTargetAdapter() {
 			@Override
 			public void dragEnter(DropTargetEvent event) {
-				for(TransferData t: event.dataTypes)
-					if(TextTransfer.getInstance().isSupportedType(t))
+				for (TransferData t : event.dataTypes)
+					if (TextTransfer.getInstance().isSupportedType(t))
 						event.currentDataType = t;
 			}
 
@@ -68,19 +70,38 @@ public class PlaylistView extends Composite {
 
 			@Override
 			public void drop(DropTargetEvent event) {
+				if (event.item == null)
+					return;
 				Audio track = (Audio) event.item.getData("track");
 				bus.post(new InsertBefore(table.getSelectionIndices(), table.indexOf((TableItem) event.item)));
 				int index = 0;
-				for(Item item: table.getItems()) {
-					if(item.getData("track") == track)
+				for (Item item : table.getItems()) {
+					if (item.getData("track") == track)
 						break;
 					index++;
 				}
 				table.setSelection(index - table.getSelection().length, index - 1);
 			}
 		});
+		Menu menu = new Menu(table);
+		delete = new MenuItem(menu, SWT.NONE);
+		delete.setText("Remove");
+		table.setMenu(menu);
 		updateTable();
 	}
+
+	public void updateCurrentTrack() {
+		table.setRedraw(false);
+		int i = 0;
+		for(TableItem item: table.getItems()) {
+			item.setFont(normalFont);
+			if(i == playlist.getCurrentTrackIndex())
+				item.setFont(boldFont);
+			i++;
+		}
+		table.setRedraw(true);
+	}
+
 
 	public void updateTable() {
 		table.setRedraw(false);
@@ -129,5 +150,23 @@ public class PlaylistView extends Composite {
 			this.source = source;
 			this.target = target;
 		}
+	}
+
+	public void addDelListener(final Runnable listener) {
+		table.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if(e.keyCode == SWT.DEL) {
+					listener.run();
+					table.deselectAll();
+				}
+			}
+		});
+		delete.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				listener.run();
+			}
+		});
 	}
 }
