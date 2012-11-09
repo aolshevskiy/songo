@@ -1,6 +1,7 @@
 package songo.model;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
 import com.google.inject.servlet.SessionScoped;
@@ -71,8 +72,7 @@ public class Playlist {
 
 	public void remove(int[] indices) {
 		Audio current = getCurrentTrack();
-		ArrayList<Audio> view = new ArrayList<Audio>();
-		view.addAll(tracks);
+		ArrayList<Audio> view = Lists.newArrayList(tracks);
 		for(int i = indices.length - 1; i >= 0; i--)
 			view.remove(indices[i]);
 		tracks = ImmutableList.copyOf(view);

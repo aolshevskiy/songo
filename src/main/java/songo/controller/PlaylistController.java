@@ -1,6 +1,7 @@
 package songo.controller;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
@@ -11,7 +12,6 @@ import songo.view.PlayerControl;
 import songo.view.PlaylistView;
 import songo.vk.Audio;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -110,14 +110,13 @@ public class PlaylistController {
 
 	@Subscribe
 	public void insertBefore(PlaylistView.InsertBefore e) {
-		List<Audio> view = new ArrayList<Audio>();
-		view.addAll(playlist.getTracks());
+		List<Audio> view = Lists.newArrayList(playlist.getTracks());
 		Audio target = view.get(e.target);
-		List<Integer> sourceIds = new ArrayList<Integer>();
+		List<Integer> sourceIds = Lists.newArrayList();
 		for(int i: e.source)
 			sourceIds.add(i);
 		Collections.reverse(sourceIds);
-		List<Audio> source = new ArrayList<Audio>();
+		List<Audio> source = Lists.newArrayList();
 		for(int i: sourceIds)
 			source.add(view.remove(i));
 		Collections.reverse(source);

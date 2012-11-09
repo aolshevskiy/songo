@@ -1,7 +1,7 @@
 package songo.logging;
 
+import com.google.common.base.Throwables;
 import com.google.inject.MembersInjector;
-import com.google.inject.spi.InjectionListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -21,7 +21,7 @@ public class LoggingMembersInjector<I> implements MembersInjector<I> {
 		try {
 			field.set(anArg0, logger);
 		} catch (IllegalAccessException e) {
-			throw new RuntimeException(e);
+			throw Throwables.propagate(e);
 		}
 	}
 }

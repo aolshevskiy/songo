@@ -13,7 +13,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 import songo.ResourceUtil;
-import songo.model.Playlist;
 
 @SessionScoped
 public class PlayerControl extends Composite {

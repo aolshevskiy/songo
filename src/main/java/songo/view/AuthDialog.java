@@ -14,7 +14,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 import songo.SWTUtil;
 import songo.annotation.BrowserStyle;
-import songo.model.Configuration;
 
 @SessionScoped
 public class AuthDialog implements View {

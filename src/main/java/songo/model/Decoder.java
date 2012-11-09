@@ -12,7 +12,6 @@ import songo.mpg123.Mpg123Exception;
 import songo.vk.Audio;
 
 import javax.sound.sampled.AudioSystem;
-import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.SourceDataLine;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;

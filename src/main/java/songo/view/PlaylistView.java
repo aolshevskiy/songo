@@ -1,7 +1,6 @@
 package songo.view;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Ranges;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
 import org.eclipse.swt.SWT;
@@ -16,7 +15,6 @@ import songo.annotation.PlaylistTab;
 import songo.model.Playlist;
 import songo.vk.Audio;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class PlaylistView extends Composite {
@@ -65,7 +63,7 @@ public class PlaylistView extends Composite {
 
 			@Override
 			public void dragOver(DropTargetEvent event) {
-				event.feedback = DND.FEEDBACK_INSERT_BEFORE;
+				event.feedback = DND.FEEDBACK_INSERT_BEFORE | DND.FEEDBACK_SCROLL;
 			}
 
 			@Override
@@ -80,7 +78,9 @@ public class PlaylistView extends Composite {
 						break;
 					index++;
 				}
-				table.setSelection(index - table.getSelection().length, index - 1);
+				int start = index - table.getSelection().length, end = index - 1;
+				table.deselectAll();
+				table.select(start, end);
 			}
 		});
 		Menu menu = new Menu(table);
@@ -106,10 +106,10 @@ public class PlaylistView extends Composite {
 	public void updateTable() {
 		table.setRedraw(false);
 		int[] selection = table.getSelectionIndices();
-		table.removeAll();
+		table.setItemCount(playlist.getTracks().size());
 		int i = 0;
 		for (Audio track : playlist.getTracks()) {
-			TableItem item = new TableItem(table, SWT.NONE);
+			TableItem item = table.getItem(i);
 			if (i == playlist.getCurrentTrackIndex())
 				item.setFont(boldFont);
 			item.setText(new String[]{track.artist, track.title});
@@ -117,7 +117,7 @@ public class PlaylistView extends Composite {
 			i++;
 		}
 		TableUtil.packColumns(table);
-		table.setSelection(selection);
+		table.select(selection);
 		table.setRedraw(true);
 	}
 
@@ -166,6 +166,7 @@ public class PlaylistView extends Composite {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				listener.run();
+				table.deselectAll();
 			}
 		});
 	}
