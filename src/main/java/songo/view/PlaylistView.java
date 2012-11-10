@@ -30,7 +30,7 @@ public class PlaylistView extends Composite {
 		this.playlist = playlist;
 		playlistTab.setControl(this);
 		setLayout(new FillLayout());
-		table = new Table(this, SWT.MULTI);
+		table = new Table(this, SWT.MULTI | SWT.FULL_SELECTION);
 		table.setHeaderVisible(true);
 		String[] columns = new String[]{"Artist", "Title"};
 		for (String name : columns) {

@@ -37,7 +37,7 @@ public class SearchView extends Composite {
 					searchField.setFocus();
 			}
 		});
-		table = new Table(this, SWT.MULTI);
+		table = new Table(this, SWT.MULTI | SWT.FULL_SELECTION);
 		table.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		table.setHeaderVisible(true);
 		String[] columns = new String[]{"Artist", "Title"};

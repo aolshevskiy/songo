@@ -19,7 +19,6 @@
 		<guice.version>3.0</guice.version>
 	</properties>
 
-
 	<dependencies>
 		<dependency>
 			<groupId>com.google.inject</groupId>
@@ -53,7 +52,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.swt</groupId>
-			<artifactId>swt-${songo.os.name}-${songo.os.arch}</artifactId>
+			<artifactId>swt-${songo.os.name}${songo.os.arch}</artifactId>
 			<version>4.2.1</version>
 		</dependency>
 		<dependency>
@@ -98,6 +97,10 @@
 			<artifactId>maven-assembly-plugin</artifactId>
 			<version>2.3</version>
 			<configuration>
+				<archiverConfig>
+					<defaultFileMode>420</defaultFileMode>
+					<defaultDirectoryMode>493</defaultDirectoryMode>
+				</archiverConfig>
 				<descriptors>
 					<descriptor>src/main/assembly/assembly.xml</descriptor>
 				</descriptors>
@@ -109,6 +112,44 @@
 					<goals>
 						<goal>single</goal>
 					</goals>
+				</execution>
+			</executions>
+		</plugin>
+		<plugin>
+			<groupId>org.codehaus.mojo</groupId>
+			<artifactId>exec-maven-plugin</artifactId>
+			<configuration>
+				<executable>java</executable>
+				<arguments>
+					<argument>-Dfile.encoding=UTF-8</argument>
+					<argument>-Djna.library.path=${project.basedir}/src/main/natives/${songo.os.name}${songo.os.arch}</argument>
+				  <argument>-classpath</argument>
+				  <classpath />
+				  <argument>songo.MainModule</argument>
+				</arguments>
+			</configuration>
+		</plugin>
+		<plugin>
+			<artifactId>maven-resources-plugin</artifactId>
+			<configuration>
+				<encoding>UTF-8</encoding>
+			</configuration>
+			<executions>
+				<execution>
+					<id>generate-scripts</id>
+					<phase>prepare-package</phase>
+					<goals>
+						<goal>copy-resources</goal>
+					</goals>
+					<configuration>
+						<outputDirectory>${project.build.directory}/scripts</outputDirectory>
+						<resources>
+							<resource>
+								<directory>${project.basedir}/src/main/scripts/${songo.os.name}</directory>
+								<filtering>true</filtering>
+							</resource>
+						</resources>
+					</configuration>
 				</execution>
 			</executions>
 		</plugin>
@@ -128,15 +169,15 @@
 			</properties>
 		</profile>
 		<profile>
-			<id>amd64</id>
+			<id>64</id>
 			<properties>
-				<songo.os.arch>amd64</songo.os.arch>
+				<songo.os.arch>64</songo.os.arch>
 			</properties>
 		</profile>
 		<profile>
-			<id>x86</id>
+			<id>32</id>
 			<properties>
-				<songo.os.arch>x86</songo.os.arch>
+				<songo.os.arch>32</songo.os.arch>
 			</properties>
 		</profile>
 	</profiles>

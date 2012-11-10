@@ -1,5 +1,6 @@
 package songo;
 
+import com.google.common.base.Charsets;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.*;
 import com.google.inject.assistedinject.FactoryModuleBuilder;

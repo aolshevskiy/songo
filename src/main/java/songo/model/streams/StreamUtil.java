@@ -16,7 +16,7 @@ public class StreamUtil {
 	}
 
 	private static String escapeForWindows(String input) {
-		return input.replace("\"", "");
+		return input.replace("\"", "").trim();
 	}
 
 	private static String escapeForNonWindows(String input) {

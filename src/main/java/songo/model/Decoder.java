@@ -81,8 +81,10 @@ class Decoder implements Runnable {
 	@Override
 	public void run() {
 		try {
-			if (paused)
+			if (paused) {
+				line.flush();
 				return;
+			}
 			int read = stream.read(buffer);
 			if (read == -1 && stream.getLimit() != stream.getLength()) {
 				stream.seek(stream.getPosition());
