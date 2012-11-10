@@ -1,0 +1,2 @@
+language: java
+script: "mvn -Plinux,64 package; mvn -Pwin,32 package"
