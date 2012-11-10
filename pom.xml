@@ -67,13 +67,17 @@
 			<version>2.0.1</version>
 		</dependency>
 		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.1</version>
+		</dependency>
+		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 			<version>1.0.7</version>
 			<scope>runtime</scope>
 		</dependency>
 	</dependencies>
-
 	<build>
 	<plugins>
 		<plugin>
