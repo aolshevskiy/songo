@@ -1,7 +1,6 @@
 package songo;
 
 import com.google.common.eventbus.EventBus;
-import com.google.common.util.concurrent.RateLimiter;
 import com.google.inject.*;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.matcher.Matchers;
@@ -53,11 +52,8 @@ public class MainModule extends AbstractModule {
 		install(
 			new FactoryModuleBuilder()
 				.implement(RemoteStream.class, RemoteStream.class)
-				.build(RemoteStreamFactory.class));
-		install(
-			new FactoryModuleBuilder()
 				.implement(LocalStream.class, LocalStream.class)
-				.build(LocalStreamFactory.class));
+				.build(StreamFactory.class));
 		bindListener(Matchers.any(), new LoggingTypeListener());
 	}
 
@@ -87,7 +83,9 @@ public class MainModule extends AbstractModule {
 	@Provides
 	@Singleton
 	Mpg123Native provideMpg123Native() {
-		return (Mpg123Native) Native.loadLibrary("mpg123", Mpg123Native.class);
+		Mpg123Native result = (Mpg123Native) Native.loadLibrary("mpg123", Mpg123Native.class);
+		result.mpg123_init();
+		return result;
 	}
 
 	@Provides
@@ -122,11 +120,6 @@ public class MainModule extends AbstractModule {
 			.setRequestTimeoutInMs(300000)
 			.build();
 		return new AsyncHttpClient(config);
-	}
-
-	@Provides @Singleton
-	RateLimiter provideRateLimiter() {
-		return RateLimiter.create(200000);
 	}
 
 	public static void main(Stage stage) {

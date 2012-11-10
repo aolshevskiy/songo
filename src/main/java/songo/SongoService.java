@@ -55,8 +55,6 @@ public class SongoService extends AbstractExecutionThreadService {
 
 	@Override
 	protected void startUp() throws Exception {
-		conf.load();
-		mpg123Native.mpg123_init();
 		display = new Display();
 		if (!conf.isAuthorized())
 			controller = authController;
@@ -89,7 +87,6 @@ public class SongoService extends AbstractExecutionThreadService {
 		player.stop();
 		asyncHttpClient.close();
 		mpg123Native.mpg123_exit();
-		conf.save();
 		streamManager.close();
 		display.dispose();
 	}

@@ -90,19 +90,6 @@ public class PlaylistView extends Composite {
 		updateTable();
 	}
 
-	public void updateCurrentTrack() {
-		table.setRedraw(false);
-		int i = 0;
-		for(TableItem item: table.getItems()) {
-			item.setFont(normalFont);
-			if(i == playlist.getCurrentTrackIndex())
-				item.setFont(boldFont);
-			i++;
-		}
-		table.setRedraw(true);
-	}
-
-
 	public void updateTable() {
 		table.setRedraw(false);
 		int[] selection = table.getSelectionIndices();
@@ -110,6 +97,7 @@ public class PlaylistView extends Composite {
 		int i = 0;
 		for (Audio track : playlist.getTracks()) {
 			TableItem item = table.getItem(i);
+			item.setFont(normalFont);
 			if (i == playlist.getCurrentTrackIndex())
 				item.setFont(boldFont);
 			item.setText(new String[]{track.artist, track.title});

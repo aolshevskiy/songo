@@ -19,9 +19,10 @@ public class Configuration {
 	@Inject
 	Configuration(@ConfigurationFile File file) {
 		this.file = file;
+		load();
 	}
 
-	public void load() {
+	private void load() {
 		props = new Properties();
 		if (!file.exists())
 			return;
@@ -32,7 +33,7 @@ public class Configuration {
 		}
 	}
 
-	public void save() {
+	private void save() {
 		try {
 			props.store(new FileOutputStream(file), "");
 		} catch (IOException e) {
@@ -46,6 +47,7 @@ public class Configuration {
 
 	public void setAccessToken(String token) {
 		props.setProperty("vk.accessToken", token);
+		save();
 	}
 
 	public String getAccessToken() {

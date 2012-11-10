@@ -51,7 +51,7 @@ public class Playlist {
 
 	public void setCurrentTrackIndex(int currentTrackIndex) {
 		this.currentTrackIndex = currentTrackIndex;
-		currentTrackChanged();
+		changed();
 	}
 
 	@Inject
@@ -84,15 +84,7 @@ public class Playlist {
 		bus.post(new Changed());
 	}
 
-	private void currentTrackChanged() {
-		bus.post(new CurrentTrackChanged());
-	}
-
 	public static class Changed {
 		private Changed(){}
-	}
-
-	public static class CurrentTrackChanged {
-		private CurrentTrackChanged(){}
 	}
 }

@@ -60,11 +60,6 @@ public class PlaylistController {
 	}
 
 	@Subscribe
-	public void playlistCurrentTrackChanged(Playlist.CurrentTrackChanged e) {
-		view.updateCurrentTrack();
-	}
-
-	@Subscribe
 	public void seek(PlayerControl.Seek e) {
 		player.seek(e.position);
 	}

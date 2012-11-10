@@ -10,16 +10,14 @@ import songo.vk.Audio;
 public class StreamProvider implements Provider<Stream> {
 	private final Provider<Audio> audio;
 	private final StreamManager manager;
-	private final RemoteStreamFactory remoteStreamFactory;
-	private final LocalStreamFactory localStreamFactory;
+	private final StreamFactory streamFactory;
 	private final StreamUtil util;
 
 	@Inject
-	StreamProvider(Provider<Audio> audio, StreamManager manager, RemoteStreamFactory remoteStreamFactory, LocalStreamFactory localStreamFactory, StreamUtil util) {
+	StreamProvider(Provider<Audio> audio, StreamManager manager, StreamFactory streamFactory, StreamUtil util) {
 		this.audio = audio;
 		this.manager = manager;
-		this.remoteStreamFactory = remoteStreamFactory;
-		this.localStreamFactory = localStreamFactory;
+		this.streamFactory = streamFactory;
 		this.util = util;
 	}
 
@@ -30,7 +28,7 @@ public class StreamProvider implements Provider<Stream> {
 		if (existing != null)
 			return existing;
 		if (util.getTrackFile(track).exists())
-			return localStreamFactory.create(track);
-		return remoteStreamFactory.create(track);
+			return streamFactory.createLocal(track);
+		return streamFactory.createRemote(track);
 	}
 }

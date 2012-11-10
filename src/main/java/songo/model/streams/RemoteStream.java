@@ -20,9 +20,8 @@ import java.util.concurrent.ExecutorService;
 
 public class RemoteStream implements Stream {
 	private final AsyncHttpClient client;
-	private final LocalStreamFactory factory;
+	private final StreamFactory factory;
 	private final StreamManager manager;
-	private final RateLimiter rateLimiter;
 	private final Audio track;
 	private final File trackFile;
 	private final RandomAccessFile file;
@@ -36,11 +35,10 @@ public class RemoteStream implements Stream {
 	@InjectLogger Logger logger;
 
 	@Inject
-	RemoteStream(final AsyncHttpClient client, StreamUtil util, LocalStreamFactory factory, StreamManager manager, @BackgroundExecutor ExecutorService executor, RateLimiter rateLimiter, @Assisted final Audio track) {
+	RemoteStream(final AsyncHttpClient client, StreamUtil util, StreamFactory factory, StreamManager manager, @BackgroundExecutor ExecutorService executor, @Assisted final Audio track) {
 		this.client = client;
 		this.factory = factory;
 		this.manager = manager;
-		this.rateLimiter = rateLimiter;
 		this.track = track;
 		trackFile = util.getTrackFile(track);
 		try {
@@ -169,7 +167,6 @@ public class RemoteStream implements Stream {
 		public STATE onBodyPartReceived(final HttpResponseBodyPart bodyPart) throws Exception {
 			ByteBuffer buffer = bodyPart.getBodyByteBuffer();
 			int bufferLength = buffer.limit() - buffer.position();
-			rateLimiter.acquire(bufferLength);
 			while (buffer.limit() != buffer.position())
 				channel.write(buffer, limit);
 			limit += bufferLength;
@@ -199,7 +196,7 @@ public class RemoteStream implements Stream {
 
 		@Override
 		public Object onCompleted() throws Exception {
-			delegate = factory.create(track);
+			delegate = factory.createLocal(track);
 			delegate.seek(channel.position());
 			closeThis();
 			return null;
