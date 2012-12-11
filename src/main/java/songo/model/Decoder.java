@@ -140,7 +140,11 @@ class Decoder implements Runnable {
 	}
 
 	private void doneSeeking() {
-		executor.submit(this);
+		try {
+			executor.submit(this);
+		} catch(RejectedExecutionException e) {
+			//Ignore rejected here
+		}
 	}
 
 	private void updateProgress() {

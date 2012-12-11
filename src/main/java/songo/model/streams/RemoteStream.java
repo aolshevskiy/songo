@@ -1,7 +1,6 @@
 package songo.model.streams;
 
 import com.google.common.base.Throwables;
-import com.google.common.util.concurrent.RateLimiter;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.ning.http.client.*;
