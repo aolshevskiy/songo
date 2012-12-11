@@ -3,6 +3,7 @@ package songo.controller;
 import com.google.inject.Inject;
 import org.eclipse.swt.widgets.Display;
 import songo.annotation.BackgroundExecutor;
+import songo.model.Player;
 import songo.model.Playlist;
 import songo.view.SearchView;
 import songo.vk.Audio;
@@ -15,14 +16,16 @@ class SearchController {
 	private final SearchView searchView;
 	private final VkClient client;
 	private final Playlist playlist;
+	private final Player player;
 	private final ExecutorService executor;
 	private final Display display;
 
 	@Inject
-	SearchController(SearchView searchView, VkClient client, Playlist playlist, @BackgroundExecutor ExecutorService executor, Display display) {
+	SearchController(SearchView searchView, VkClient client, Playlist playlist, Player player,  @BackgroundExecutor ExecutorService executor, Display display) {
 		this.searchView = searchView;
 		this.client = client;
 		this.playlist = playlist;
+		this.player = player;
 		this.executor = executor;
 		this.display = display;
 		searchView.addSearchListener(new Runnable() {
@@ -63,6 +66,8 @@ class SearchController {
 
 	private void add() {
 		playlist.add(searchView.getSelectedTracks());
+		playlist.setCurrentTrackIndex(playlist.getTracks().size() - 1);
+		player.play();
 	}
 
 	private void replace() {

@@ -4,8 +4,13 @@ env:
     - secure: "GsAxUtqRQLncBlUeY+KzqFToqeI6s+BJVAXFDsBze6djjfCvURCX/89RR9kQ\nTuaslmRv/FtOPXMDJ5gDzr6BtI1GQ/jzcWA7h6aNa6J7Wxv5hxWLgIRTLs75\na5vq3WX7FqlW36c4r1z93FL/i6v+nQEKlTdFTMGa1JHXe7GEP/0="
   matrix:
     - OS_NAME: linux
+      OS_ARCH: 32
+    - OS_NAME: linux
       OS_ARCH: 64
     - OS_NAME: win
       OS_ARCH: 32
+    - OS_NAME: win
+      OS_ARCH: 64
+		- OS_NAME: 
 install: "mvn -P$OS_NAME,$OS_ARCH deploy -Dgithub.global.oauth2Token=$GITHUB_TOKEN -DskipTests=true"
 script: ":"
