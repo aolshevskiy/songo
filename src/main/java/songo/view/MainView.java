@@ -55,7 +55,8 @@ public class MainView implements View {
 		searchTab = new TabItem(tabs, SWT.NONE);
 		searchTab.setText("Search");
 		tabs.setSelection(1);
-		trayView.setExitListener(shell, new Runnable() {
+		trayView.setShell(shell);
+		trayView.addExitListener(new Runnable() {
 			@Override
 			public void run() {
 				close();

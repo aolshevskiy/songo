@@ -109,7 +109,8 @@ public class MainModule extends AbstractModule {
 	}
 
 	@Provides
-	@Singleton @BackgroundExecutor
+	@Singleton
+	@BackgroundExecutor
 	ExecutorService provideBackgroundExecutor() {
 		return Executors.newSingleThreadExecutor();
 	}
