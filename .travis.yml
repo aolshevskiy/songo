@@ -11,6 +11,5 @@ env:
       OS_ARCH: 32
     - OS_NAME: win
       OS_ARCH: 64
-		- OS_NAME: 
 install: "mvn -P$OS_NAME,$OS_ARCH deploy -Dgithub.global.oauth2Token=$GITHUB_TOKEN -DskipTests=true"
 script: ":"
