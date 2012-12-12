@@ -202,6 +202,12 @@
 			</properties>
 		</profile>
 		<profile>
+			<id>mac</id>
+			<properties>
+				<songo.os.name>mac</songo.os.name>
+			</properties>
+		</profile>
+		<profile>
 			<id>64</id>
 			<properties>
 				<songo.os.arch>64</songo.os.arch>
