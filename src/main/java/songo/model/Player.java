@@ -71,9 +71,9 @@ public class Player {
 	}
 
 	public static class UpdatePosition {
-		public final float position;
+		public final int position;
 
-		public UpdatePosition(float position) {
+		public UpdatePosition(int position) {
 			this.position = position;
 		}
 	}
@@ -86,8 +86,7 @@ public class Player {
 		}
 	}
 
-	public static class DonePlaying {
-	}
+	public static class DonePlaying { }
 
 	public enum State {
 		STOPPED,

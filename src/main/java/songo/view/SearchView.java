@@ -104,22 +104,18 @@ public class SearchView extends Composite {
 	}
 
 	public static class Search {
-		private Search() {
-		}
+		private Search() { }
 	}
 
 	public static class Play {
-		private Play() {
-		}
+		private Play() { }
 	}
 
 	public static class Add {
-		private Add() {
-		}
+		private Add() {	}
 	}
 
 	public static class Replace {
-		private Replace() {
-		}
+		private Replace() { }
 	}
 }

@@ -30,12 +30,15 @@ class Decoder implements Runnable {
 	private byte[] buffer = new byte[1024];
 	private byte[] outbuffer = new byte[8192];
 	private SourceDataLine line;
-	private RateLimiter rateLimiter = RateLimiter.create(1);
+	private final int duration;
+	private int position;
 	@InjectLogger
 	Logger logger;
 
+
 	@Inject
 	Decoder(Audio track, Stream stream, Mpg123 mpg, @GlobalBus EventBus bus) {
+		this.duration = track.duration;
 		this.stream = stream;
 		this.mpg = mpg;
 		this.bus = bus;
@@ -121,9 +124,11 @@ class Decoder implements Runnable {
 				sizeSet = true;
 				mpg.setFileSize((int) stream.getLength());
 			}
-			float percentage = (float) mpg.getSamplePosition() / mpg.getLength();
-			if(rateLimiter.tryAcquire(0, TimeUnit.SECONDS))
-				bus.post(new Player.UpdatePosition(percentage));
+			int position = (int) ((float) duration * mpg.getSamplePosition() / mpg.getLength());
+			if(this.position != position) {
+				this.position = position;
+				bus.post(new Player.UpdatePosition(position));
+			}
 		} catch (Exception e) {
 			throw Throwables.propagate(e);
 		}

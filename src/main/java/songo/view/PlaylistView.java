@@ -53,9 +53,8 @@ public class PlaylistView extends Composite {
 		table.addKeyListener(new KeyAdapter() {
 			@Override
 			public void keyPressed(KeyEvent e) {
-				if(e.keyCode == SWT.DEL) {
+				if(e.keyCode == SWT.DEL)
 					delete();
-				}
 			}
 		});
 		DragSource dragSource = new DragSource(table, DND.DROP_MOVE);
@@ -150,12 +149,10 @@ public class PlaylistView extends Composite {
 	}
 
 	public static class Play {
-		private Play() {
-		}
+		private Play() { }
 	}
 
 	public static class Delete {
-		private Delete() {
-		}
+		private Delete() { }
 	}
 }

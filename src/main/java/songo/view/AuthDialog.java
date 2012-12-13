@@ -97,7 +97,6 @@ public class AuthDialog implements View {
 	}
 
 	public static class Register {
-		private Register() {
-		}
+		private Register() { }
 	}
 }

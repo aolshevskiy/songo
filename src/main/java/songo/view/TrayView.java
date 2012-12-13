@@ -48,12 +48,10 @@ public class TrayView {
 	}
 
 	public static class Exit {
-		private Exit() {
-		}
+		private Exit() { }
 	}
 
 	public class Restore {
-		private Restore() {
-		}
+		private Restore() { }
 	}
 }

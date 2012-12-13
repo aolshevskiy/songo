@@ -86,7 +86,6 @@ public class Playlist {
 	}
 
 	public static class Changed {
-		private Changed() {
-		}
+		private Changed() { }
 	}
 }

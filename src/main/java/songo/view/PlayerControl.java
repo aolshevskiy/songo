@@ -121,12 +121,12 @@ public class PlayerControl extends Composite {
 		});
 	}
 
-	public void updatePosition(final float position) {
+	public void updatePosition(final int position) {
 		getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				progress.setSelection((int) (duration * position));
-				updateProgressText((int) (duration * position));
+				progress.setSelection(position);
+				updateProgressText(position);
 			}
 		});
 	}
@@ -154,22 +154,18 @@ public class PlayerControl extends Composite {
 	}
 
 	public static class Stop {
-		private Stop() {
-		}
+		private Stop() { }
 	}
 
 	public static class PlayPause {
-		private PlayPause() {
-		}
+		private PlayPause() { }
 	}
 
 	public static class Prev {
-		private Prev() {
-		}
+		private Prev() { }
 	}
 
 	public static class Next {
-		private Next() {
-		}
+		private Next() { }
 	}
 }
