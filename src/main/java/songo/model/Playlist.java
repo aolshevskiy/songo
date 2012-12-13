@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
 import com.google.inject.servlet.SessionScoped;
+import songo.annotation.GlobalBus;
 import songo.vk.Audio;
 
 import java.util.ArrayList;
@@ -30,7 +31,7 @@ public class Playlist {
 	private void fixCurrentTrack(Audio track) {
 		currentTrackIndex = -1;
 		int i = 0;
-		for(Audio t: tracks) {
+		for(Audio t : tracks) {
 			if(t == track) {
 				currentTrackIndex = i;
 				return;
@@ -55,7 +56,7 @@ public class Playlist {
 	}
 
 	@Inject
-	Playlist(EventBus bus) {
+	Playlist(@GlobalBus EventBus bus) {
 		this.bus = bus;
 	}
 
@@ -85,6 +86,7 @@ public class Playlist {
 	}
 
 	public static class Changed {
-		private Changed(){}
+		private Changed() {
+		}
 	}
 }

@@ -25,9 +25,9 @@ public class StreamProvider implements Provider<Stream> {
 	public Stream get() {
 		Audio track = audio.get();
 		RemoteStream existing = manager.get(track);
-		if (existing != null)
+		if(existing != null)
 			return existing;
-		if (util.getTrackFile(track).exists())
+		if(util.getTrackFile(track).exists())
 			return streamFactory.createLocal(track);
 		return streamFactory.createRemote(track);
 	}

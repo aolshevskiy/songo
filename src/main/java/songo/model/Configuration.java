@@ -24,7 +24,7 @@ public class Configuration {
 
 	private void load() {
 		props = new Properties();
-		if (!file.exists())
+		if(!file.exists())
 			return;
 		try {
 			props.load(new FileInputStream(file));

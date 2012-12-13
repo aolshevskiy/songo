@@ -43,7 +43,8 @@ public class MainModule extends AbstractModule {
 		SimpleScope sessionScope = new SimpleScope();
 		bindScope(SessionScoped.class, sessionScope);
 		bind(SimpleScope.class).annotatedWith(SessionScope.class).toInstance(sessionScope);
-		bind(EventBus.class).in(Singleton.class);
+		bind(EventBus.class).annotatedWith(GlobalBus.class).to(EventBus.class).in(Singleton.class);
+		bind(EventBus.class).annotatedWith(SessionBus.class).to(EventBus.class).in(SessionScoped.class);
 		bind(File.class).annotatedWith(ConfigurationFile.class).toInstance(new File("configuration.properties"));
 		bind(String.class).annotatedWith(VkAppId.class).toInstance("3192319");
 		bind(String.class).annotatedWith(VkRegisterUrl.class).toInstance("http://vk.com/join");
@@ -115,7 +116,8 @@ public class MainModule extends AbstractModule {
 		return Executors.newSingleThreadExecutor();
 	}
 
-	@Provides @Singleton
+	@Provides
+	@Singleton
 	AsyncHttpClient provideAsyncHttpClient() {
 		AsyncHttpClientConfig config = new AsyncHttpClientConfig.Builder()
 			.setRequestTimeoutInMs(300000)
@@ -126,6 +128,12 @@ public class MainModule extends AbstractModule {
 	public static void main(Stage stage) {
 		Injector injector = Guice.createInjector(stage, new MainModule());
 		final SongoService service = injector.getInstance(SongoService.class);
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				service.stop();
+			}
+		});
 		service.startAndWait();
 	}
 

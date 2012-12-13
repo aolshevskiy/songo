@@ -1,8 +1,11 @@
 package songo.controller;
 
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import org.eclipse.swt.widgets.Display;
 import songo.annotation.BackgroundExecutor;
+import songo.annotation.SessionBus;
 import songo.model.Player;
 import songo.model.Playlist;
 import songo.view.SearchView;
@@ -21,34 +24,19 @@ class SearchController {
 	private final Display display;
 
 	@Inject
-	SearchController(SearchView searchView, VkClient client, Playlist playlist, Player player,  @BackgroundExecutor ExecutorService executor, Display display) {
+	SearchController(SearchView searchView, VkClient client, Playlist playlist, Player player,
+		@BackgroundExecutor ExecutorService executor, Display display, @SessionBus EventBus bus) {
 		this.searchView = searchView;
 		this.client = client;
 		this.playlist = playlist;
 		this.player = player;
 		this.executor = executor;
 		this.display = display;
-		searchView.addSearchListener(new Runnable() {
-			@Override
-			public void run() {
-				search();
-			}
-		});
-		searchView.addAddListener(new Runnable() {
-			@Override
-			public void run() {
-				add();
-			}
-		});
-		searchView.addReplaceListener(new Runnable() {
-			@Override
-			public void run() {
-				replace();
-			}
-		});
+		bus.register(this);
 	}
 
-	private void search() {
+	@Subscribe
+	public void search(SearchView.Search e) {
 		final String query = searchView.getSearchQuery();
 		executor.submit(new Runnable() {
 			@Override
@@ -64,13 +52,24 @@ class SearchController {
 		});
 	}
 
-	private void add() {
-		playlist.add(searchView.getSelectedTracks());
+	@Subscribe
+	public void play(SearchView.Play e) {
+		add();
 		playlist.setCurrentTrackIndex(playlist.getTracks().size() - 1);
 		player.play();
 	}
 
-	private void replace() {
+	@Subscribe
+	public void add(SearchView.Add e) {
+		add();
+	}
+
+	@Subscribe
+	public void replace(SearchView.Replace e) {
 		playlist.replace(searchView.getSelectedTracks());
+	}
+
+	private void add() {
+		playlist.add(searchView.getSelectedTracks());
 	}
 }

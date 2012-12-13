@@ -40,8 +40,9 @@ public class SongoService extends AbstractExecutionThreadService {
 
 	@Inject
 	SongoService(AsyncHttpClient asyncHttpClient, Mpg123Native mpg123Native, Player player,
-	             @SessionScope SimpleScope scope, Configuration conf, Provider<AuthController> authController,
-	             Provider<MainController> mainController, StreamManager streamManager, @BackgroundExecutor ExecutorService backgroundExecutor) {
+		@SessionScope SimpleScope scope, Configuration conf, Provider<AuthController> authController,
+		Provider<MainController> mainController, StreamManager streamManager,
+		@BackgroundExecutor ExecutorService backgroundExecutor) {
 		this.asyncHttpClient = asyncHttpClient;
 		this.mpg123Native = mpg123Native;
 		this.player = player;
@@ -56,7 +57,7 @@ public class SongoService extends AbstractExecutionThreadService {
 	@Override
 	protected void startUp() throws Exception {
 		display = new Display();
-		if (!conf.isAuthorized())
+		if(!conf.isAuthorized())
 			controller = authController;
 		else
 			controller = mainController;
@@ -64,13 +65,13 @@ public class SongoService extends AbstractExecutionThreadService {
 
 	@Override
 	protected void run() {
-		while (isRunning()) {
+		while(isRunning()) {
 			scope.enter();
 			shell = controller.get().getView().getShell();
 			shell.open();
 			shell.setFocus();
-			while (!shell.isDisposed())
-				if (!display.readAndDispatch())
+			while(!shell.isDisposed())
+				if(!display.readAndDispatch())
 					display.sleep();
 			scope.exit();
 		}

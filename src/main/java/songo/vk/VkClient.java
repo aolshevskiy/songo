@@ -22,7 +22,8 @@ public class VkClient {
 	private final Provider<String> accessToken;
 	private final Gson gson;
 	private final AsyncHttpClient client;
-	@InjectLogger Logger logger;
+	@InjectLogger
+	Logger logger;
 
 	@Inject
 	VkClient(@VkAccessToken Provider<String> accessToken, Gson gson, AsyncHttpClient client) {
@@ -44,7 +45,7 @@ public class VkClient {
 	private AsyncHttpClient.BoundRequestBuilder buildRequest(String method, Map<String, String> params) {
 		StringBuilder url = new StringBuilder();
 		url.append(ENDPOINT).append(method).append("?access_token=").append(accessToken.get());
-		for (Map.Entry<String, String> e : params.entrySet())
+		for(Map.Entry<String, String> e : params.entrySet())
 			url.append("&").append(urlEncode(e.getKey())).append("=").append(urlEncode(e.getValue()));
 		return client.prepareGet(url.toString());
 	}
@@ -99,7 +100,8 @@ public class VkClient {
 		AsyncHttpClient.BoundRequestBuilder request = buildRequest(method, params);
 		try {
 			InputStream in = openStream(request);
-			TypeToken<VkResponse<T>> token = new TypeToken<VkResponse<T>>() {}
+			TypeToken<VkResponse<T>> token = new TypeToken<VkResponse<T>>() {
+			}
 				.where(new TypeParameter<T>() {
 				}, type);
 			VkResponse<T> response = gson.fromJson(new InputStreamReader(in), token.getType());
@@ -120,7 +122,7 @@ public class VkClient {
 		});
 		audios = audios.subList(1, audios.size());
 		ImmutableList.Builder<Audio> result = new ImmutableList.Builder<Audio>();
-		for (Object o : audios) {
+		for(Object o : audios) {
 			Map<String, Object> i = (Map<String, Object>) o;
 			result.add(new Audio(fixHtmlEntities((String) i.get("artist")), fixHtmlEntities((String) i.get("title")), (String) i.get("url"), ((Double) i.get("duration")).intValue()));
 		}

@@ -1,12 +1,10 @@
 package songo.view;
 
+import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
 import com.google.inject.servlet.SessionScoped;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.Browser;
-import org.eclipse.swt.browser.LocationListener;
-import org.eclipse.swt.browser.ProgressAdapter;
-import org.eclipse.swt.browser.ProgressEvent;
+import org.eclipse.swt.browser.*;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -14,16 +12,12 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 import songo.SWTUtil;
 import songo.annotation.BrowserStyle;
+import songo.annotation.SessionBus;
 
 @SessionScoped
 public class AuthDialog implements View {
 	private final Shell shell;
 	private final Browser browser;
-	private final Button registerButton;
-
-	public Browser getBrowser() {
-		return browser;
-	}
 
 	private static GridLayout gridLayout() {
 		return gridLayout(1);
@@ -38,7 +32,7 @@ public class AuthDialog implements View {
 	}
 
 	@Inject
-	AuthDialog(Shell shell, SWTUtil util, @BrowserStyle Integer browserStyle) {
+	AuthDialog(Shell shell, SWTUtil util, @BrowserStyle Integer browserStyle, @SessionBus final EventBus bus) {
 		this.shell = shell;
 		util.exitOnClose(shell);
 		shell.setText("Songo - VKontakte Authorization");
@@ -61,10 +55,21 @@ public class AuthDialog implements View {
 
 			@Override
 			public void completed(ProgressEvent event) {
-				if ((Boolean) browser.evaluate("return document.getElementById('login_submit') != null;")) {
+				if((Boolean) browser.evaluate("return document.getElementById('login_submit') != null;")) {
 					browser.setFocus();
 					browser.execute("document.getElementById('login_submit').elements['email'].focus();");
 				}
+			}
+		});
+		browser.addLocationListener(new LocationListener() {
+			@Override
+			public void changing(LocationEvent locationEvent) {
+				bus.post(locationEvent);
+			}
+
+			@Override
+			public void changed(LocationEvent locationEvent) {
+				bus.post(locationEvent);
 			}
 		});
 		Composite bottomPanel = new Composite(shell, SWT.NONE);
@@ -72,15 +77,12 @@ public class AuthDialog implements View {
 		bottomPanel.setLayout(gridLayout(2));
 		Label dontHaveLabel = new Label(bottomPanel, SWT.RIGHT);
 		dontHaveLabel.setText("Don't have a VKontakte account?");
-		registerButton = new Button(bottomPanel, SWT.PUSH);
+		Button registerButton = new Button(bottomPanel, SWT.PUSH);
 		registerButton.setText("Register");
-	}
-
-	public void addRegistrationListener(final Runnable listener) {
 		registerButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				listener.run();
+				bus.post(new Register());
 			}
 		});
 	}
@@ -89,12 +91,13 @@ public class AuthDialog implements View {
 		browser.setUrl(url);
 	}
 
-	public void addLocationListener(LocationListener listener) {
-		browser.addLocationListener(listener);
-	}
-
 	@Override
 	public Shell getShell() {
 		return shell;
+	}
+
+	public static class Register {
+		private Register() {
+		}
 	}
 }

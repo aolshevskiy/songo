@@ -8,7 +8,8 @@ public class MainController implements Controller {
 	private final MainView view;
 
 	@Inject
-	MainController(MainView view, SearchController searchController, PlaylistController playlistController, PlayerController playerController) {
+	MainController(MainView view, SearchController searchController, PlaylistController playlistController,
+		PlayerController playerController) {
 		this.view = view;
 	}
 

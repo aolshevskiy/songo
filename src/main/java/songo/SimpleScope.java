@@ -82,7 +82,7 @@ public class SimpleScope implements Scope {
 
 				@SuppressWarnings("unchecked")
 				T current = (T) scopedObjects.get(key);
-				if (current == null && !scopedObjects.containsKey(key)) {
+				if(current == null && !scopedObjects.containsKey(key)) {
 					current = unscoped.get();
 					scopedObjects.put(key, current);
 				}
@@ -93,7 +93,7 @@ public class SimpleScope implements Scope {
 
 	private <T> Map<Key<?>, Object> getScopedObjectMap(Key<T> key) {
 		Map<Key<?>, Object> scopedObjects = values.get();
-		if (scopedObjects == null) {
+		if(scopedObjects == null) {
 			throw new OutOfScopeException("Cannot access " + key
 				+ " outside of a scoping block");
 		}

@@ -13,25 +13,25 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 import songo.ResourceUtil;
+import songo.annotation.GlobalBus;
+import songo.annotation.SessionBus;
 
 @SessionScoped
 public class PlayerControl extends Composite {
-	private final EventBus bus;
+	private final EventBus globalBus;
 	private final ProgressBar progress;
 	private Label progressText;
 	private int duration = 0;
 	private ProgressBar downloadProgress;
-	private ToolItem nextButton;
-	private ToolItem prevButton;
 	private ToolItem playButton;
-	private ToolItem stopButton;
 	private Image playIcon;
 	private Image pauseIcon;
 
 	@Inject
-	public PlayerControl(MainView mainView, EventBus bus, ResourceUtil resourceUtil) {
+	public PlayerControl(MainView mainView, @GlobalBus EventBus globalBus, @SessionBus final EventBus sessionBus,
+		ResourceUtil resourceUtil) {
 		super(mainView.getShell(), SWT.NONE);
-		this.bus = bus;
+		this.globalBus = globalBus;
 		moveAbove(mainView.getShell().getChildren()[0]);
 		setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
 		GridLayout thisLayout = new GridLayout(3, false);
@@ -44,16 +44,40 @@ public class PlayerControl extends Composite {
 		GridData toolbarData = new GridData(SWT.CENTER, SWT.FILL, false, true);
 		toolbarData.verticalSpan = 2;
 		toolbar.setLayoutData(toolbarData);
-		prevButton = new ToolItem(toolbar, SWT.FLAT);
+		ToolItem prevButton = new ToolItem(toolbar, SWT.FLAT);
 		prevButton.setImage(new Image(getDisplay(), resourceUtil.iconStream("prev")));
+		prevButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				sessionBus.post(new Prev());
+			}
+		});
 		playButton = new ToolItem(toolbar, SWT.FLAT);
+		playButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				sessionBus.post(new PlayPause());
+			}
+		});
 		playIcon = new Image(getDisplay(), resourceUtil.iconStream("play"));
 		pauseIcon = new Image(getDisplay(), resourceUtil.iconStream("pause"));
 		playButton.setImage(playIcon);
-		stopButton = new ToolItem(toolbar, SWT.FLAT);
+		ToolItem stopButton = new ToolItem(toolbar, SWT.FLAT);
 		stopButton.setImage(new Image(getDisplay(), resourceUtil.iconStream("stop")));
-		nextButton = new ToolItem(toolbar, SWT.FLAT);
+		stopButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				sessionBus.post(new Stop());
+			}
+		});
+		ToolItem nextButton = new ToolItem(toolbar, SWT.FLAT);
 		nextButton.setImage(new Image(getDisplay(), resourceUtil.iconStream("next")));
+		nextButton.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				sessionBus.post(new Next());
+			}
+		});
 		progressText = new Label(this, SWT.NONE);
 		updateProgressText(0);
 		progressText.setAlignment(SWT.RIGHT);
@@ -74,7 +98,7 @@ public class PlayerControl extends Composite {
 	}
 
 	public void seek(MouseEvent e) {
-		bus.post(new Seek((float) e.x / progress.getSize().x));
+		globalBus.post(new Seek((float) e.x / progress.getSize().x));
 	}
 
 	private String formatProgressText(int position) {
@@ -97,12 +121,12 @@ public class PlayerControl extends Composite {
 		});
 	}
 
-	public void updatePosition(final int position) {
+	public void updatePosition(final float position) {
 		getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				progress.setSelection(position);
-				updateProgressText(position);
+				progress.setSelection((int) (duration * position));
+				updateProgressText((int) (duration * position));
 			}
 		});
 	}
@@ -125,44 +149,27 @@ public class PlayerControl extends Composite {
 		}
 	}
 
-	public void addPrevListener(final Runnable listener) {
-		prevButton.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				listener.run();
-			}
-		});
-	}
-
 	public void setIsPlaying(boolean isPlaying) {
 		playButton.setImage(isPlaying ? pauseIcon : playIcon);
 	}
 
-	public void addPlayPauseListener(final Runnable listener) {
-		playButton.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				listener.run();
-			}
-		});
+	public static class Stop {
+		private Stop() {
+		}
 	}
 
-	public void addStopListener(final Runnable listener) {
-		stopButton.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				listener.run();
-			}
-		});
+	public static class PlayPause {
+		private PlayPause() {
+		}
 	}
 
-	public void addNextListener(final Runnable listener) {
-		nextButton.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				listener.run();
-			}
-		});
+	public static class Prev {
+		private Prev() {
+		}
 	}
 
+	public static class Next {
+		private Next() {
+		}
+	}
 }

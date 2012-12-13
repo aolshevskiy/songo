@@ -4,6 +4,7 @@ import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
+import songo.annotation.GlobalBus;
 import songo.vk.Audio;
 
 @Singleton
@@ -24,7 +25,7 @@ public class Player {
 	}
 
 	@Inject
-	Player(EventBus bus, Provider<Audio> audio, Provider<Decoder> decoderProvider) {
+	Player(@GlobalBus EventBus bus, Provider<Audio> audio, Provider<Decoder> decoderProvider) {
 		this.bus = bus;
 		this.audio = audio;
 		this.decoderProvider = decoderProvider;
@@ -49,7 +50,7 @@ public class Player {
 	}
 
 	public void stop() {
-		if (decoder != null) {
+		if(decoder != null) {
 			decoder.close();
 			decoder = null;
 		}
@@ -70,9 +71,9 @@ public class Player {
 	}
 
 	public static class UpdatePosition {
-		public final int position;
+		public final float position;
 
-		public UpdatePosition(int position) {
+		public UpdatePosition(float position) {
 			this.position = position;
 		}
 	}

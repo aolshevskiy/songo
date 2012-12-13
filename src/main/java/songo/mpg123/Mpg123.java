@@ -72,16 +72,16 @@ public class Mpg123 {
 		}
 		int enc = encRef.getValue();
 		int sampleSizeInBits = -1;
-		if ((enc & MPG123_ENC_8) != 0)
+		if((enc & MPG123_ENC_8) != 0)
 			sampleSizeInBits = 8;
-		if ((enc & MPG123_ENC_16) != 0)
+		if((enc & MPG123_ENC_16) != 0)
 			sampleSizeInBits = 16;
-		if ((enc & MPG123_ENC_24) != 0)
+		if((enc & MPG123_ENC_24) != 0)
 			sampleSizeInBits = 24;
-		if ((enc & MPG123_ENC_32) != 0)
+		if((enc & MPG123_ENC_32) != 0)
 			sampleSizeInBits = 32;
 		boolean signed = false;
-		if ((enc & MPG123_ENC_SIGNED) != 0)
+		if((enc & MPG123_ENC_SIGNED) != 0)
 			signed = true;
 		return new AudioFormat(rate.getValue(), sampleSizeInBits, channels.getValue(), signed, ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN);
 	}
@@ -94,7 +94,7 @@ public class Mpg123 {
 	}
 
 	public void setFileSize(int size) throws Mpg123Exception {
-		if (!sizeSet) {
+		if(!sizeSet) {
 			sizeSet = true;
 			synchronized (this) {
 				checkStatus();

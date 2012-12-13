@@ -31,7 +31,7 @@ public class StreamUtil {
 
 	public File getTrackFile(Audio track) {
 		File artistDir = new File(cacheDir, fixFilename(track.artist));
-		if (!artistDir.exists())
+		if(!artistDir.exists())
 			artistDir.mkdirs();
 		return new File(artistDir, fixFilename(track.title) + ".mp3");
 	}

@@ -23,13 +23,13 @@ public class StreamManager {
 
 	RemoteStream get(Audio track) {
 		RemoteStream stream = streams.get(track);
-		if (stream != null)
+		if(stream != null)
 			stream.seek(0);
 		return stream;
 	}
 
 	public void close() {
-		for (Map.Entry<Audio, RemoteStream> e : streams.entrySet())
+		for(Map.Entry<Audio, RemoteStream> e : streams.entrySet())
 			e.getValue().closeAndDelete();
 	}
 }

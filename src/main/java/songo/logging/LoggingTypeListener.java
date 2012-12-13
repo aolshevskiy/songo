@@ -10,10 +10,10 @@ import java.lang.reflect.Field;
 public class LoggingTypeListener implements TypeListener {
 	@Override
 	public <I> void hear(TypeLiteral<I> aTypeLiteral, TypeEncounter<I> aTypeEncounter) {
-		for (Field field : aTypeLiteral.getRawType().getDeclaredFields()) {
-			if (field.getType() == Logger.class && field.isAnnotationPresent(InjectLogger.class)) {
-	        	aTypeEncounter.register(new LoggingMembersInjector<I>(field));
-	        }
-	      }
+		for(Field field : aTypeLiteral.getRawType().getDeclaredFields()) {
+			if(field.getType() == Logger.class && field.isAnnotationPresent(InjectLogger.class)) {
+				aTypeEncounter.register(new LoggingMembersInjector<I>(field));
+			}
+		}
 	}
 }

@@ -31,10 +31,12 @@ public class RemoteStream implements Stream {
 	private volatile long expectedSeekPosition = -1;
 	private volatile Runnable listener;
 	private volatile Runnable progressListener;
-	@InjectLogger Logger logger;
+	@InjectLogger
+	Logger logger;
 
 	@Inject
-	RemoteStream(final AsyncHttpClient client, StreamUtil util, StreamFactory factory, StreamManager manager, @BackgroundExecutor ExecutorService executor, @Assisted final Audio track) {
+	RemoteStream(final AsyncHttpClient client, StreamUtil util, StreamFactory factory, StreamManager manager,
+		@BackgroundExecutor ExecutorService executor, @Assisted final Audio track) {
 		this.client = client;
 		this.factory = factory;
 		this.manager = manager;
@@ -69,7 +71,7 @@ public class RemoteStream implements Stream {
 
 	@Override
 	public int read(byte[] buffer) {
-		if (delegate != null)
+		if(delegate != null)
 			return delegate.read(buffer);
 		try {
 			return channel.read(ByteBuffer.wrap(buffer));
@@ -80,10 +82,10 @@ public class RemoteStream implements Stream {
 
 	@Override
 	public boolean seek(final long position) {
-		if (delegate != null)
+		if(delegate != null)
 			return delegate.seek(position);
 		try {
-			if (limit > position) {
+			if(limit > position) {
 				channel.position(position);
 				return true;
 			}
@@ -96,7 +98,7 @@ public class RemoteStream implements Stream {
 
 	@Override
 	public long getLength() {
-		if (delegate != null)
+		if(delegate != null)
 			return delegate.getLength();
 		return length;
 	}
@@ -112,7 +114,7 @@ public class RemoteStream implements Stream {
 
 	@Override
 	public void close() {
-		if (delegate != null) {
+		if(delegate != null) {
 			delegate.close();
 			return;
 		}
@@ -135,7 +137,7 @@ public class RemoteStream implements Stream {
 
 	@Override
 	public synchronized void closeIfCompleted() {
-		if (delegate != null)
+		if(delegate != null)
 			close();
 	}
 
@@ -150,7 +152,7 @@ public class RemoteStream implements Stream {
 
 	@Override
 	public long getLimit() {
-		if (delegate != null)
+		if(delegate != null)
 			return delegate.getLimit();
 		return limit;
 	}
@@ -166,12 +168,12 @@ public class RemoteStream implements Stream {
 		public STATE onBodyPartReceived(final HttpResponseBodyPart bodyPart) throws Exception {
 			ByteBuffer buffer = bodyPart.getBodyByteBuffer();
 			int bufferLength = buffer.limit() - buffer.position();
-			while (buffer.limit() != buffer.position())
+			while(buffer.limit() != buffer.position())
 				channel.write(buffer, limit);
 			limit += bufferLength;
-			if (progressListener != null)
+			if(progressListener != null)
 				progressListener.run();
-			if (expectedSeekPosition != -1 && listener != null && expectedSeekPosition <= limit) {
+			if(expectedSeekPosition != -1 && listener != null && expectedSeekPosition <= limit) {
 				channel.position(expectedSeekPosition);
 				expectedSeekPosition = -1;
 				listener.run();
@@ -181,7 +183,7 @@ public class RemoteStream implements Stream {
 
 		@Override
 		public STATE onStatusReceived(HttpResponseStatus responseStatus) throws Exception {
-			if (responseStatus.getStatusCode() != 200)
+			if(responseStatus.getStatusCode() != 200)
 				return STATE.ABORT;
 			return STATE.CONTINUE;
 		}

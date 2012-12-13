@@ -1,6 +1,5 @@
 package songo.view;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
 import org.eclipse.swt.SWT;
@@ -11,38 +10,54 @@ import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.*;
 import songo.TableUtil;
+import songo.annotation.GlobalBus;
 import songo.annotation.PlaylistTab;
+import songo.annotation.SessionBus;
 import songo.model.Playlist;
 import songo.vk.Audio;
-
-import java.util.List;
 
 public class PlaylistView extends Composite {
 	private final Table table;
 	private final Playlist playlist;
+	private final EventBus sessionBus;
 	private final Font boldFont;
-	private final MenuItem delete;
 	private final Font normalFont;
 
 	@Inject
-	PlaylistView(@PlaylistTab TabItem playlistTab, Playlist playlist, final EventBus bus) {
+	PlaylistView(@PlaylistTab TabItem playlistTab, Playlist playlist, final @GlobalBus EventBus globalBus,
+		@SessionBus final EventBus sessionBus) {
 		super(playlistTab.getParent(), SWT.NONE);
 		this.playlist = playlist;
+		this.sessionBus = sessionBus;
 		playlistTab.setControl(this);
 		setLayout(new FillLayout());
 		table = new Table(this, SWT.MULTI | SWT.FULL_SELECTION);
 		table.setHeaderVisible(true);
 		String[] columns = new String[]{"Artist", "Title"};
-		for (String name : columns) {
+		for(String name : columns) {
 			TableColumn column = new TableColumn(table, SWT.NONE);
 			column.setText(name);
 			column.pack();
 		}
 		FontData[] data = table.getFont().getFontData();
 		normalFont = new Font(getDisplay(), data);
-		for (FontData d : data)
+		for(FontData d : data)
 			d.setStyle(SWT.BOLD);
 		boldFont = new Font(getDisplay(), data);
+		table.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseDoubleClick(MouseEvent e) {
+				sessionBus.post(new Play());
+			}
+		});
+		table.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if(e.keyCode == SWT.DEL) {
+					delete();
+				}
+			}
+		});
 		DragSource dragSource = new DragSource(table, DND.DROP_MOVE);
 		dragSource.setTransfer(new Transfer[]{TextTransfer.getInstance()});
 		dragSource.addDragListener(new DragSourceAdapter() {
@@ -56,8 +71,8 @@ public class PlaylistView extends Composite {
 		dropTarget.addDropListener(new DropTargetAdapter() {
 			@Override
 			public void dragEnter(DropTargetEvent event) {
-				for (TransferData t : event.dataTypes)
-					if (TextTransfer.getInstance().isSupportedType(t))
+				for(TransferData t : event.dataTypes)
+					if(TextTransfer.getInstance().isSupportedType(t))
 						event.currentDataType = t;
 			}
 
@@ -68,13 +83,13 @@ public class PlaylistView extends Composite {
 
 			@Override
 			public void drop(DropTargetEvent event) {
-				if (event.item == null)
+				if(event.item == null)
 					return;
 				Audio track = (Audio) event.item.getData("track");
-				bus.post(new InsertBefore(table.getSelectionIndices(), table.indexOf((TableItem) event.item)));
+				globalBus.post(new InsertBefore(table.getSelectionIndices(), table.indexOf((TableItem) event.item)));
 				int index = 0;
-				for (Item item : table.getItems()) {
-					if (item.getData("track") == track)
+				for(Item item : table.getItems()) {
+					if(item.getData("track") == track)
 						break;
 					index++;
 				}
@@ -84,10 +99,21 @@ public class PlaylistView extends Composite {
 			}
 		});
 		Menu menu = new Menu(table);
-		delete = new MenuItem(menu, SWT.NONE);
+		MenuItem delete = new MenuItem(menu, SWT.NONE);
 		delete.setText("Remove");
+		delete.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				delete();
+			}
+		});
 		table.setMenu(menu);
 		updateTable();
+	}
+
+	private void delete() {
+		sessionBus.post(new Delete());
+		table.deselectAll();
 	}
 
 	public void updateTable() {
@@ -95,10 +121,10 @@ public class PlaylistView extends Composite {
 		int[] selection = table.getSelectionIndices();
 		table.setItemCount(playlist.getTracks().size());
 		int i = 0;
-		for (Audio track : playlist.getTracks()) {
+		for(Audio track : playlist.getTracks()) {
 			TableItem item = table.getItem(i);
 			item.setFont(normalFont);
-			if (i == playlist.getCurrentTrackIndex())
+			if(i == playlist.getCurrentTrackIndex())
 				item.setFont(boldFont);
 			item.setText(new String[]{track.artist, track.title});
 			item.setData("track", track);
@@ -113,23 +139,6 @@ public class PlaylistView extends Composite {
 		return table.getSelectionIndices();
 	}
 
-	public List<Audio> getSelectedTracks() {
-		List<Audio> tracks = playlist.getTracks();
-		ImmutableList.Builder<Audio> result = new ImmutableList.Builder<Audio>();
-		for (int i : table.getSelectionIndices())
-			result.add(tracks.get(i));
-		return result.build();
-	}
-
-	public void addPlayListener(final Runnable listener) {
-		table.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseDoubleClick(MouseEvent e) {
-				listener.run();
-			}
-		});
-	}
-
 	public static class InsertBefore {
 		public final int[] source;
 		public final int target;
@@ -140,22 +149,13 @@ public class PlaylistView extends Composite {
 		}
 	}
 
-	public void addDelListener(final Runnable listener) {
-		table.addKeyListener(new KeyAdapter() {
-			@Override
-			public void keyPressed(KeyEvent e) {
-				if(e.keyCode == SWT.DEL) {
-					listener.run();
-					table.deselectAll();
-				}
-			}
-		});
-		delete.addSelectionListener(new SelectionAdapter() {
-			@Override
-			public void widgetSelected(SelectionEvent e) {
-				listener.run();
-				table.deselectAll();
-			}
-		});
+	public static class Play {
+		private Play() {
+		}
+	}
+
+	public static class Delete {
+		private Delete() {
+		}
 	}
 }

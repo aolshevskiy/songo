@@ -6,6 +6,8 @@ import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import org.eclipse.swt.widgets.Display;
+import songo.annotation.GlobalBus;
+import songo.annotation.SessionBus;
 import songo.model.Player;
 import songo.model.Playlist;
 import songo.view.PlayerControl;
@@ -22,36 +24,15 @@ public class PlaylistController {
 	private final Display display;
 
 	@Inject
-	PlaylistController(PlaylistView view, EventBus bus, Player player, Playlist playlist, Display display, PlayerControl playerControl) {
+	PlaylistController(PlaylistView view, @GlobalBus EventBus globalBus, @SessionBus EventBus sessionBus, Player player,
+		Playlist playlist, Display display,
+		PlayerControl playerControl) {
 		this.view = view;
 		this.player = player;
 		this.playlist = playlist;
 		this.display = display;
-		view.addPlayListener(new Runnable() {
-			@Override
-			public void run() {
-				play();
-			}
-		});
-		view.addDelListener(new Runnable() {
-			@Override
-			public void run() {
-				delete();
-			}
-		});
-		playerControl.addPrevListener(new Runnable() {
-			@Override
-			public void run() {
-				prev();
-			}
-		});
-		playerControl.addNextListener(new Runnable() {
-			@Override
-			public void run() {
-				next();
-			}
-		});
-		bus.register(this);
+		globalBus.register(this);
+		sessionBus.register(this);
 	}
 
 	@Subscribe
@@ -74,16 +55,22 @@ public class PlaylistController {
 		});
 	}
 
-	public void prev() {
+	@Subscribe
+	public void prev(PlayerControl.Prev e) {
 		int prev = playlist.getCurrentTrackIndex() - 1;
-		if (prev < 0)
+		if(prev < 0)
 			prev = playlist.getTracks().size() - 1;
 		prevNextUpdateState(prev);
 	}
 
-	public void next() {
+	@Subscribe
+	public void next(PlayerControl.Next e) {
+		next();
+	}
+
+	private void next() {
 		int next = playlist.getCurrentTrackIndex() + 1;
-		if (next == playlist.getTracks().size())
+		if(next == playlist.getTracks().size())
 			next = 0;
 		prevNextUpdateState(next);
 	}
@@ -96,8 +83,9 @@ public class PlaylistController {
 			player.stop();
 	}
 
-	public void play() {
-		if (view.getSelectedIndices().length == 0)
+	@Subscribe
+	public void play(PlaylistView.Play e) {
+		if(view.getSelectedIndices().length == 0)
 			return;
 		playlist.setCurrentTrackIndex(view.getSelectedIndices()[0]);
 		player.play();
@@ -108,15 +96,15 @@ public class PlaylistController {
 		List<Audio> view = Lists.newArrayList(playlist.getTracks());
 		Audio target = view.get(e.target);
 		List<Integer> sourceIds = Lists.newArrayList();
-		for(int i: e.source)
+		for(int i : e.source)
 			sourceIds.add(i);
 		Collections.reverse(sourceIds);
 		List<Audio> source = Lists.newArrayList();
-		for(int i: sourceIds)
+		for(int i : sourceIds)
 			source.add(view.remove(i));
 		Collections.reverse(source);
 		int i = 0;
-		for(Audio track: view) {
+		for(Audio track : view) {
 			if(track == target)
 				break;
 			i++;
@@ -125,7 +113,8 @@ public class PlaylistController {
 		playlist.setTracks(ImmutableList.copyOf(view));
 	}
 
-	private void delete() {
+	@Subscribe
+	public void delete(PlaylistView.Delete e) {
 		playlist.remove(view.getSelectedIndices());
 	}
 }

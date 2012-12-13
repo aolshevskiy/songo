@@ -1,5 +1,7 @@
 package songo.view;
 
+import com.google.common.eventbus.EventBus;
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.servlet.SessionScoped;
 import org.eclipse.swt.SWT;
@@ -7,11 +9,11 @@ import org.eclipse.swt.events.ShellAdapter;
 import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import songo.SWTUtil;
+import songo.annotation.SessionBus;
 
 @SessionScoped
 public class MainView implements View {
@@ -29,8 +31,9 @@ public class MainView implements View {
 	}
 
 	@Inject
-	MainView(Display display, final Shell shell, SWTUtil util, TrayView trayView) {
+	MainView(final Shell shell, SWTUtil util, TrayView trayView, @SessionBus EventBus bus) {
 		this.shell = shell;
+		bus.register(this);
 		util.exitOnClose(shell);
 		hideOnClose = new ShellAdapter() {
 			@Override
@@ -40,12 +43,6 @@ public class MainView implements View {
 			}
 		};
 		shell.addShellListener(hideOnClose);
-		trayView.addRestoreListener(new Runnable() {
-			@Override
-			public void run() {
-				restore();
-			}
-		});
 		shell.setText("Songo");
 		shell.setLayout(new GridLayout());
 		TabFolder tabs = new TabFolder(shell, SWT.NONE);
@@ -56,19 +53,15 @@ public class MainView implements View {
 		searchTab.setText("Search");
 		tabs.setSelection(1);
 		trayView.setShell(shell);
-		trayView.addExitListener(new Runnable() {
-			@Override
-			public void run() {
-				close();
-			}
-		});
 	}
 
-	private void restore() {
+	@Subscribe
+	public void restore(TrayView.Restore e) {
 		shell.setVisible(!shell.getVisible());
 	}
 
-	private void close() {
+	@Subscribe
+	public void close(TrayView.Exit e) {
 		shell.removeShellListener(hideOnClose);
 		shell.close();
 	}

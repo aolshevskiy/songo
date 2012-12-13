@@ -3,6 +3,8 @@ package songo.controller;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
+import songo.annotation.GlobalBus;
+import songo.annotation.SessionBus;
 import songo.model.Player;
 import songo.model.Playlist;
 import songo.view.PlayerControl;
@@ -13,40 +15,32 @@ public class PlayerController {
 	private final Playlist playlist;
 
 	@Inject
-	PlayerController(PlayerControl playerControl, EventBus bus, Player player, Playlist playlist) {
+	PlayerController(PlayerControl playerControl, @GlobalBus EventBus globalBus, @SessionBus EventBus sessionBus,
+		Player player, Playlist playlist) {
 		this.playerControl = playerControl;
 		this.player = player;
 		this.playlist = playlist;
-		playerControl.addPlayPauseListener(new Runnable() {
-			@Override
-			public void run() {
-				playPause();
-			}
-		});
-		playerControl.addStopListener(new Runnable() {
-			@Override
-			public void run() {
-				stop();
-			}
-		});
-		bus.register(this);
+		globalBus.register(this);
+		sessionBus.register(this);
 	}
 
-	private void stop() {
-		if (player.getState() == Player.State.PLAYING || player.getState() == Player.State.PAUSED)
+	@Subscribe
+	public void stop(PlayerControl.Stop e) {
+		if(player.getState() == Player.State.PLAYING || player.getState() == Player.State.PAUSED)
 			player.stop();
 	}
 
-	private void playPause() {
-		if (player.getState() == Player.State.STOPPED) {
-			if (playlist.getTracks().size() == 0)
+	@Subscribe
+	public void playPause(PlayerControl.PlayPause e) {
+		if(player.getState() == Player.State.STOPPED) {
+			if(playlist.getTracks().size() == 0)
 				return;
-			if (playlist.getCurrentTrackIndex() == -1)
+			if(playlist.getCurrentTrackIndex() == -1)
 				playlist.setCurrentTrackIndex(0);
 			player.play();
 			return;
 		}
-		if (player.getState() == Player.State.PAUSED) {
+		if(player.getState() == Player.State.PAUSED) {
 			player.unpause();
 			return;
 		}
