@@ -18,6 +18,7 @@ import songo.annotation.SessionBus;
 @SessionScoped
 public class MainView implements View {
 	private final Shell shell;
+	private final SWTUtil util;
 	private final TabItem searchTab;
 	private final TabItem playlistTab;
 	private final ShellAdapter hideOnClose;
@@ -33,8 +34,8 @@ public class MainView implements View {
 	@Inject
 	MainView(final Shell shell, SWTUtil util, TrayView trayView, @SessionBus EventBus bus) {
 		this.shell = shell;
+		this.util = util;
 		bus.register(this);
-		util.exitOnClose(shell);
 		hideOnClose = new ShellAdapter() {
 			@Override
 			public void shellClosed(ShellEvent shellEvent) {
@@ -63,6 +64,7 @@ public class MainView implements View {
 	@Subscribe
 	public void close(TrayView.Exit e) {
 		shell.removeShellListener(hideOnClose);
+		util.exitOnClose(shell);
 		shell.close();
 	}
 

@@ -131,6 +131,12 @@ public class MainModule extends AbstractModule {
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
 			public void run() {
+				service.getDisplay().asyncExec(new Runnable() {
+					@Override
+					public void run() {
+						service.stop();
+					}
+				});
 				service.stop();
 			}
 		});

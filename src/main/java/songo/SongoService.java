@@ -1,6 +1,6 @@
 package songo;
 
-import com.google.common.util.concurrent.AbstractExecutionThreadService;
+import com.google.common.util.concurrent.AbstractService;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
@@ -20,7 +20,7 @@ import songo.mpg123.Mpg123Native;
 import java.util.concurrent.ExecutorService;
 
 @Singleton
-public class SongoService extends AbstractExecutionThreadService {
+public class SongoService extends AbstractService {
 	private final AsyncHttpClient asyncHttpClient;
 	private final Mpg123Native mpg123Native;
 	private final Player player;
@@ -54,17 +54,7 @@ public class SongoService extends AbstractExecutionThreadService {
 		this.backgroundExecutor = backgroundExecutor;
 	}
 
-	@Override
-	protected void startUp() throws Exception {
-		display = new Display();
-		if(!conf.isAuthorized())
-			controller = authController;
-		else
-			controller = mainController;
-	}
-
-	@Override
-	protected void run() {
+	private void run() {
 		while(isRunning()) {
 			scope.enter();
 			shell = controller.get().getView().getShell();
@@ -83,12 +73,37 @@ public class SongoService extends AbstractExecutionThreadService {
 	}
 
 	@Override
-	protected void shutDown() throws Exception {
-		backgroundExecutor.shutdownNow();
-		player.stop();
-		asyncHttpClient.close();
-		mpg123Native.mpg123_exit();
-		streamManager.close();
-		display.dispose();
+	protected void doStart() {
+		try {
+			display = new Display();
+			if(!conf.isAuthorized())
+				controller = authController;
+			else
+				controller = mainController;
+			notifyStarted();
+		} catch (Exception e) {
+			notifyFailed(e);
+			return;
+		}
+		try {
+			run();
+		} catch (Exception e) {
+			notifyFailed(e);
+		}
+	}
+
+	@Override
+	protected void doStop() {
+		try {
+			backgroundExecutor.shutdownNow();
+			player.stop();
+			asyncHttpClient.close();
+			mpg123Native.mpg123_exit();
+			streamManager.close();
+			display.dispose();
+			notifyStopped();
+		} catch (Exception e) {
+			notifyFailed(e);
+		}
 	}
 }

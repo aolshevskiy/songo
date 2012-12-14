@@ -2,7 +2,6 @@ package songo.model;
 
 import com.google.common.base.Throwables;
 import com.google.common.eventbus.EventBus;
-import com.google.common.util.concurrent.RateLimiter;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import songo.annotation.GlobalBus;
@@ -18,7 +17,6 @@ import javax.sound.sampled.SourceDataLine;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
-import java.util.concurrent.TimeUnit;
 
 class Decoder implements Runnable {
 	private final Stream stream;
