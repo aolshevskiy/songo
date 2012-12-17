@@ -7,7 +7,6 @@
 	<groupId>songo</groupId>
 	<artifactId>songo</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<url>http://github.com/siasia/songo</url>
 
 	<repositories>
 		<repository>
@@ -169,19 +168,23 @@
 		</plugin>
 		<plugin>
 			<groupId>com.github.github</groupId>
-			<artifactId>downloads-maven-plugin</artifactId>
+			<artifactId>site-maven-plugin</artifactId>
 			<configuration>
+				<outputDirectory>${project.build.directory}</outputDirectory>
 				<includes>
 					<include>${project.build.finalName}-${songo.os.name}${songo.os.arch}.*</include>
 				</includes>
-				<override>true</override>
+				<repositoryOwner>siasia</repositoryOwner>
+				<repositoryName>songo-artifacts</repositoryName>
+				<branch>refs/heads/${songo.os.name}${songo.os.arch}</branch>
+				<message>Publish artifacts</message>
 			</configuration>
 			<executions>
 				<execution>
-					<id>github-upload</id>
+					<id>github-site</id>
 					<phase>deploy</phase>
 					<goals>
-						<goal>upload</goal>
+						<goal>site</goal>
 					</goals>
 				</execution>
 			</executions>
