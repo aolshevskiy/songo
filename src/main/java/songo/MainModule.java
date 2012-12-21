@@ -45,7 +45,6 @@ public class MainModule extends AbstractModule {
 		bind(SimpleScope.class).annotatedWith(SessionScope.class).toInstance(sessionScope);
 		bind(EventBus.class).annotatedWith(GlobalBus.class).to(EventBus.class).in(Singleton.class);
 		bind(EventBus.class).annotatedWith(SessionBus.class).to(EventBus.class).in(SessionScoped.class);
-		bind(File.class).annotatedWith(ConfigurationFile.class).toInstance(new File("configuration.properties"));
 		bind(String.class).annotatedWith(VkAppId.class).toInstance("3192319");
 		bind(String.class).annotatedWith(VkRegisterUrl.class).toInstance("http://vk.com/join");
 		bind(Integer.class).annotatedWith(BrowserStyle.class).toInstance(getNativeBrowserStyle());

@@ -19,6 +19,8 @@ import songo.mpg123.Mpg123Native;
 
 import java.util.concurrent.ExecutorService;
 
+import static songo.Constants.HOME_DIR;
+
 @Singleton
 public class SongoService extends AbstractService {
 	private final AsyncHttpClient asyncHttpClient;
@@ -75,6 +77,8 @@ public class SongoService extends AbstractService {
 	@Override
 	protected void doStart() {
 		try {
+			if(!HOME_DIR.exists())
+				HOME_DIR.mkdir();
 			display = new Display();
 			if(!conf.isAuthorized())
 				controller = authController;

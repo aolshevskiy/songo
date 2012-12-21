@@ -6,8 +6,10 @@ import songo.vk.Audio;
 
 import java.io.File;
 
+import static songo.Constants.HOME_DIR;
+
 public class StreamUtil {
-	private final File cacheDir = new File("cache");
+	private final File cacheDir = new File(HOME_DIR, "cache");
 	private final boolean runningWindows;
 
 	@Inject

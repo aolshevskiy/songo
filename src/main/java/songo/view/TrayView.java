@@ -12,15 +12,17 @@ import org.eclipse.swt.widgets.*;
 import songo.ResourceUtil;
 import songo.annotation.SessionBus;
 
+import static songo.ResourceUtil.iconStream;
+
 public class TrayView {
 	private final TrayItem item;
 	private final EventBus bus;
 
 	@Inject
-	TrayView(Display display, ResourceUtil resourceUtil, @SessionBus final EventBus bus) {
+	TrayView(Display display, @SessionBus final EventBus bus) {
 		this.bus = bus;
 		item = new TrayItem(display.getSystemTray(), SWT.NONE);
-		item.setImage(new Image(display, resourceUtil.iconStream("tray")));
+		item.setImage(new Image(display, iconStream("tray")));
 		item.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent selectionEvent) {

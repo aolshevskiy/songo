@@ -16,6 +16,8 @@ import songo.ResourceUtil;
 import songo.annotation.GlobalBus;
 import songo.annotation.SessionBus;
 
+import static songo.ResourceUtil.iconStream;
+
 @SessionScoped
 public class PlayerControl extends Composite {
 	private final EventBus globalBus;
@@ -28,8 +30,7 @@ public class PlayerControl extends Composite {
 	private Image pauseIcon;
 
 	@Inject
-	public PlayerControl(MainView mainView, @GlobalBus EventBus globalBus, @SessionBus final EventBus sessionBus,
-		ResourceUtil resourceUtil) {
+	public PlayerControl(MainView mainView, @GlobalBus EventBus globalBus, @SessionBus final EventBus sessionBus) {
 		super(mainView.getShell(), SWT.NONE);
 		this.globalBus = globalBus;
 		moveAbove(mainView.getShell().getChildren()[0]);
@@ -45,7 +46,7 @@ public class PlayerControl extends Composite {
 		toolbarData.verticalSpan = 2;
 		toolbar.setLayoutData(toolbarData);
 		ToolItem prevButton = new ToolItem(toolbar, SWT.FLAT);
-		prevButton.setImage(new Image(getDisplay(), resourceUtil.iconStream("prev")));
+		prevButton.setImage(new Image(getDisplay(), iconStream("prev")));
 		prevButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -59,11 +60,11 @@ public class PlayerControl extends Composite {
 				sessionBus.post(new PlayPause());
 			}
 		});
-		playIcon = new Image(getDisplay(), resourceUtil.iconStream("play"));
-		pauseIcon = new Image(getDisplay(), resourceUtil.iconStream("pause"));
+		playIcon = new Image(getDisplay(), iconStream("play"));
+		pauseIcon = new Image(getDisplay(), iconStream("pause"));
 		playButton.setImage(playIcon);
 		ToolItem stopButton = new ToolItem(toolbar, SWT.FLAT);
-		stopButton.setImage(new Image(getDisplay(), resourceUtil.iconStream("stop")));
+		stopButton.setImage(new Image(getDisplay(), iconStream("stop")));
 		stopButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
@@ -71,7 +72,7 @@ public class PlayerControl extends Composite {
 			}
 		});
 		ToolItem nextButton = new ToolItem(toolbar, SWT.FLAT);
-		nextButton.setImage(new Image(getDisplay(), resourceUtil.iconStream("next")));
+		nextButton.setImage(new Image(getDisplay(), iconStream("next")));
 		nextButton.addSelectionListener(new SelectionAdapter() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
