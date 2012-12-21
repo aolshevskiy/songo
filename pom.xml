@@ -14,9 +14,17 @@
 			<url>http://siasia.github.com/maven2</url>
 		</repository>
 	</repositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>siasia.github.com</id>
+			<url>http://siasia.github.com/maven2</url>
+		</pluginRepository>
+	</pluginRepositories>
 
 	<properties>
 		<guice.version>3.0</guice.version>
+		<assembly.fileName>${project.build.finalName}-${songo.os.name}${songo.os.arch}</assembly.fileName>
+		<songo.mainClass>songo.MainModule</songo.mainClass>
 	</properties>
 
 	<dependencies>
@@ -91,7 +99,7 @@
 			<configuration>
 				<archive>
 					<manifest>
-						<mainClass>songo.MainModule</mainClass>
+						<mainClass>${songo.mainClass}</mainClass>
 						<addClasspath>true</addClasspath>
 					</manifest>
 				</archive>
@@ -108,6 +116,11 @@
 				<descriptors>
 					<descriptor>src/main/assembly/assembly.xml</descriptor>
 				</descriptors>
+				<formats>
+					<format>zip</format>
+					<format>tar.gz</format>
+					<format>tar.bz2</format>
+				</formats>
 			</configuration>
 			<executions>
 				<execution>
@@ -118,6 +131,29 @@
 					</goals>
 				</execution>
 			</executions>
+		</plugin>
+		<plugin>
+			<artifactId>maven-antrun-plugin</artifactId>
+			<version>1.7</version>
+			<configuration>
+				<target>
+					<property name="maven.project.build.finalName" value="${project.build.finalName}" />
+					<property name="maven.assembly.fileName" value="${assembly.fileName}"/>
+					<ant />
+				</target>
+			</configuration>
+			<dependencies>
+				<dependency>
+					<groupId>com.informagen</groupId>
+					<artifactId>jarbundler</artifactId>
+					<version>2.2.0</version>
+				</dependency>
+				<dependency>
+					<groupId>com.oopsconsultancy</groupId>
+					<artifactId>xmltask</artifactId>
+					<version>1.16.1</version>
+				</dependency>
+			</dependencies>
 		</plugin>
 		<plugin>
 			<groupId>org.codehaus.mojo</groupId>
@@ -172,7 +208,7 @@
 			<configuration>
 				<outputDirectory>${project.build.directory}</outputDirectory>
 				<includes>
-					<include>${project.build.finalName}-${songo.os.name}${songo.os.arch}.*</include>
+					<include>${assembly.fileName}.*</include>
 				</includes>
 				<repositoryOwner>siasia</repositoryOwner>
 				<repositoryName>songo-artifacts</repositoryName>
@@ -209,6 +245,30 @@
 			<properties>
 				<songo.os.name>mac</songo.os.name>
 			</properties>
+			<build>
+			<plugins>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<configuration>
+					<formats>
+						<format>dir</format>
+					</formats>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>antrun</id>
+						<goals>
+							<goal>run</goal>
+						</goals>
+						<phase>package</phase>
+					</execution>
+				</executions>
+			</plugin>
+			</plugins>
+			</build>
 		</profile>
 		<profile>
 			<id>64</id>

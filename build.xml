@@ -1,0 +1,22 @@
+<project name="Songo" default="jar-bundler">
+	<taskdef name="jarbundler" classname="net.sourceforge.jarbundler.JarBundler" />
+	<taskdef name="xmltask" classname="com.oopsconsultancy.xmltask.ant.XmlTask"/>
+	<property name="assembly.prefix" value="${project.build.directory}/${maven.assembly.fileName}" />
+	<property name="plist.file" value="${assembly.prefix}.app/Contents/Info.plist" />
+	<target name="jar-bundler">
+		<jarbundler	dir="${project.build.directory}" name="${maven.assembly.fileName}" mainClass="${songo.mainClass}" startOnMainThread="true">
+			<jarfileset dir="${assembly.prefix}/${maven.project.build.finalName}/lib" />
+		</jarbundler>
+		<xmltask source="${plist.file}" dest="${plist.file}">
+			<insert path="/plist/dict">
+			<![CDATA[
+			<key>LSUIElement</key>
+      <string>1</string>
+      ]]>
+			</insert>
+		</xmltask>
+		<zip destfile="${assembly.prefix}.zip" basedir="${project.build.directory}" includes="${maven.assembly.fileName}.app/**" />
+		<tar destfile="${assembly.prefix}.tar.gz" basedir="${project.build.directory}" includes="${maven.assembly.fileName}.app/**" compression="gzip" />
+		<tar destfile="${assembly.prefix}.tar.bz2" basedir="${project.build.directory}" includes="${maven.assembly.fileName}.app/**" compression="bzip2" />
+	</target>
+</project>
