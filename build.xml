@@ -1,12 +1,22 @@
 <project name="Songo" default="jar-bundler">
-	<taskdef name="jarbundler" classname="net.sourceforge.jarbundler.JarBundler" />
+	<taskdef name="bundleapp" classname="com.oracle.appbundler.AppBundlerTask" />
 	<taskdef name="xmltask" classname="com.oopsconsultancy.xmltask.ant.XmlTask"/>
 	<property name="assembly.prefix" value="${project.build.directory}/${maven.assembly.fileName}" />
 	<property name="plist.file" value="${assembly.prefix}.app/Contents/Info.plist" />
+	<path id="runtime.classpath">
+		<fileset dir="${assembly.prefix}/${maven.project.build.finalName}/lib">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
 	<target name="jar-bundler">
-		<jarbundler	dir="${project.build.directory}" name="${maven.assembly.fileName}" mainClass="${songo.mainClass}" startOnMainThread="true">
-			<jarfileset dir="${assembly.prefix}/${maven.project.build.finalName}/lib" />
-		</jarbundler>
+		<delete dir="${project.build.directory}/${maven.assembly.fileName}.app" />
+		<bundleapp outputdirectory="${project.build.directory}"
+            name="${maven.assembly.fileName}"
+            displayname="Songo"
+            identifier="com.github.siasia.Songo"
+            mainclassname="songo.MainModule">
+			<classpath file="${assembly.prefix}/${maven.project.build.finalName}/lib/*.jar" />
+		</bundleapp>
 		<xmltask source="${plist.file}" dest="${plist.file}">
 			<insert path="/plist/dict">
 			<![CDATA[

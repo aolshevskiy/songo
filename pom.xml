@@ -144,9 +144,9 @@
 			</configuration>
 			<dependencies>
 				<dependency>
-					<groupId>com.informagen</groupId>
-					<artifactId>jarbundler</artifactId>
-					<version>2.2.0</version>
+					<groupId>com.oracle</groupId>
+					<artifactId>appbundler</artifactId>
+					<version>1.0</version>
 				</dependency>
 				<dependency>
 					<groupId>com.oopsconsultancy</groupId>
