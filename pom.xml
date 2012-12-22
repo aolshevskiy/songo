@@ -116,11 +116,6 @@
 				<descriptors>
 					<descriptor>src/main/assembly/assembly.xml</descriptor>
 				</descriptors>
-				<formats>
-					<format>zip</format>
-					<format>tar.gz</format>
-					<format>tar.bz2</format>
-				</formats>
 			</configuration>
 			<executions>
 				<execution>
@@ -133,29 +128,6 @@
 			</executions>
 		</plugin>
 		<plugin>
-			<artifactId>maven-antrun-plugin</artifactId>
-			<version>1.7</version>
-			<configuration>
-				<target>
-					<property name="maven.project.build.finalName" value="${project.build.finalName}" />
-					<property name="maven.assembly.fileName" value="${assembly.fileName}"/>
-					<ant />
-				</target>
-			</configuration>
-			<dependencies>
-				<dependency>
-					<groupId>com.oracle</groupId>
-					<artifactId>appbundler</artifactId>
-					<version>1.0</version>
-				</dependency>
-				<dependency>
-					<groupId>com.oopsconsultancy</groupId>
-					<artifactId>xmltask</artifactId>
-					<version>1.16.1</version>
-				</dependency>
-			</dependencies>
-		</plugin>
-		<plugin>
 			<groupId>org.codehaus.mojo</groupId>
 			<artifactId>exec-maven-plugin</artifactId>
 			<configuration>
@@ -165,7 +137,7 @@
 					<argument>-Djna.library.path=${project.basedir}/src/main/natives/${songo.os.name}${songo.os.arch}</argument>
 				  <argument>-classpath</argument>
 				  <classpath />
-				  <argument>songo.MainModule</argument>
+				  <argument>${songo.mainClass}</argument>
 				</arguments>
 			</configuration>
 		</plugin>
@@ -249,21 +221,29 @@
 			<plugins>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
-				<configuration>
-					<formats>
-						<format>dir</format>
-					</formats>
-				</configuration>
-			</plugin>
-			<plugin>
-				<artifactId>maven-antrun-plugin</artifactId>
 				<executions>
 					<execution>
-						<id>antrun</id>
-						<goals>
-							<goal>run</goal>
-						</goals>
+						<id>assembly</id>
+						<phase>none</phase>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>osxappbundle-maven-plugin</artifactId>
+				<version>1.0-alpha-2</version>
+				<configuration>
+					<zipFile>${project.build.directory}/${project.build.finalName}-${songo.os.name}${songo.os.arch}.zip</zipFile>
+					<mainClass>${songo.mainClass}</mainClass>
+					<javaApplicationStub>${project.basedir}/src/main/var/JavaApplicationStub</javaApplicationStub>
+				</configuration>
+				<executions>
+					<execution>
+						<id>appbundle</id>
 						<phase>package</phase>
+						<goals>
+							<goal>bundle</goal>
+						</goals>
 					</execution>
 				</executions>
 			</plugin>
