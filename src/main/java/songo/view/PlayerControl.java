@@ -4,11 +4,12 @@ import com.google.common.eventbus.EventBus;
 import com.google.inject.Inject;
 import com.google.inject.servlet.SessionScoped;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.custom.ControlEditor;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.FontMetrics;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -22,7 +23,6 @@ import static songo.ResourceUtil.iconStream;
 public class PlayerControl extends Composite {
 	private final EventBus globalBus;
 	private final ProgressBar progress;
-	private Label progressText;
 	private int duration = 0;
 	private ProgressBar downloadProgress;
 	private ToolItem playButton;
@@ -35,7 +35,7 @@ public class PlayerControl extends Composite {
 		this.globalBus = globalBus;
 		moveAbove(mainView.getShell().getChildren()[0]);
 		setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false));
-		GridLayout thisLayout = new GridLayout(3, false);
+		GridLayout thisLayout = new GridLayout(2, false);
 		thisLayout.marginWidth = 0;
 		thisLayout.marginHeight = 0;
 		thisLayout.horizontalSpacing = 0;
@@ -79,19 +79,30 @@ public class PlayerControl extends Composite {
 				sessionBus.post(new Next());
 			}
 		});
-		progressText = new Label(this, SWT.NONE);
-		updateProgressText(0);
-		progressText.setAlignment(SWT.RIGHT);
 		progress = new ProgressBar(this, SWT.NONE);
 		progress.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+		progress.addPaintListener(new PaintListener() {
+			@Override
+			public void paintControl(PaintEvent e) {
+				String string =
+					formatProgressText(progress.getSelection());
+				Point point = progress.getSize();
+				FontMetrics fontMetrics = e.gc.getFontMetrics();
+				int width =
+					fontMetrics.getAverageCharWidth() * string.length();
+				int height = fontMetrics.getHeight();
+				e.gc.setForeground
+					(getDisplay().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
+				e.gc.drawString
+					(string, (point.x-width)/2 , (point.y-height)/2, true);
+			}
+		});
 		progress.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseUp(MouseEvent e) {
 				seek(e);
 			}
 		});
-		Label placeholder = new Label(this, SWT.NONE);
-		placeholder.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, false, false));
 		downloadProgress = new ProgressBar(this, SWT.NONE);
 		GridData downloadData = new GridData(SWT.FILL, SWT.CENTER, false, false);
 		downloadData.heightHint = 10;
@@ -106,10 +117,6 @@ public class PlayerControl extends Composite {
 		return String.format("%02d:%02d/%02d:%02d", position / 60, position % 60, duration / 60, duration % 60);
 	}
 
-	private void updateProgressText(int position) {
-		progressText.setText(formatProgressText(position));
-	}
-
 	public void updateDuration(final int duration) {
 		this.duration = duration;
 		getDisplay().asyncExec(new Runnable() {
@@ -117,7 +124,6 @@ public class PlayerControl extends Composite {
 			public void run() {
 				progress.setMaximum(duration);
 				progress.setSelection(0);
-				updateProgressText(0);
 			}
 		});
 	}
@@ -127,7 +133,6 @@ public class PlayerControl extends Composite {
 			@Override
 			public void run() {
 				progress.setSelection(position);
-				updateProgressText(position);
 			}
 		});
 	}

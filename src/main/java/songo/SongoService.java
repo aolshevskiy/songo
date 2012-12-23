@@ -7,11 +7,13 @@ import com.google.inject.Singleton;
 import com.ning.http.client.AsyncHttpClient;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.slf4j.Logger;
 import songo.annotation.BackgroundExecutor;
 import songo.annotation.SessionScope;
 import songo.controller.AuthController;
 import songo.controller.Controller;
 import songo.controller.MainController;
+import songo.logging.InjectLogger;
 import songo.model.Configuration;
 import songo.model.Player;
 import songo.model.streams.StreamManager;
@@ -35,6 +37,8 @@ public class SongoService extends AbstractService {
 	private Display display;
 	private Provider<? extends Controller> controller;
 	private Shell shell;
+	@InjectLogger
+	Logger logger;
 
 	Display getDisplay() {
 		return display;
@@ -87,12 +91,14 @@ public class SongoService extends AbstractService {
 			notifyStarted();
 		} catch (Exception e) {
 			notifyFailed(e);
+			logger.error("Exception occured in doStart", e);
 			return;
 		}
 		try {
 			run();
 		} catch (Exception e) {
 			notifyFailed(e);
+			logger.error("Exception occured in run", e);
 		}
 	}
 
@@ -108,6 +114,7 @@ public class SongoService extends AbstractService {
 			notifyStopped();
 		} catch (Exception e) {
 			notifyFailed(e);
+			logger.error("Exception occured in stop", e);
 		}
 	}
 }
