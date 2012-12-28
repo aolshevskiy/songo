@@ -235,7 +235,7 @@
 				<configuration>
 					<zipFile>${project.build.directory}/${project.build.finalName}-${songo.os.name}${songo.os.arch}.zip</zipFile>
 					<mainClass>${songo.mainClass}</mainClass>
-					<javaApplicationStub>${project.basedir}/src/main/var/JavaApplicationStub</javaApplicationStub>
+					<javaApplicationStub>${project.basedir}/src/main/var/JavaApplicationStub${songo.os.arch}</javaApplicationStub>
 				</configuration>
 				<executions>
 					<execution>
